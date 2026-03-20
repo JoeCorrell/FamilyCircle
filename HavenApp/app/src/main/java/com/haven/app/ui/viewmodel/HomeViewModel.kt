@@ -51,33 +51,27 @@ class HomeViewModel @Inject constructor(
         .map { it.take(3) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _refreshTrigger = MutableStateFlow(0)
-
-    val myHavens: StateFlow<List<HavenInfo>> = _refreshTrigger
-        .flatMapLatest {
-            flow {
-                while (true) {
-                    try {
-                        val havens = apiManager.getMyHavens()
-                        emit(havens)
-                    } catch (_: Exception) {}
-                    delay(5000)
-                }
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _havens = MutableStateFlow<List<HavenInfo>>(emptyList())
+    val myHavens: StateFlow<List<HavenInfo>> = _havens.asStateFlow()
 
     val activeHavenId: String? get() = apiManager.havenId
+
+    init {
+        viewModelScope.launch {
+            while (true) {
+                try {
+                    val havens = apiManager.getMyHavens()
+                    _havens.value = havens
+                } catch (_: Exception) {}
+                delay(5000)
+            }
+        }
+    }
 
     fun switchHaven(havenId: String) {
         viewModelScope.launch {
             apiManager.switchHaven(havenId)
-            _refreshTrigger.value++
         }
-    }
-
-    fun refreshHavens() {
-        _refreshTrigger.value++
     }
 }
 
