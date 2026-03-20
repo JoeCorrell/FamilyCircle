@@ -47,6 +47,8 @@ fun HavenManagementScreen(
     val familyName by viewModel.familyName.collectAsStateWithLifecycle()
     val inviteCode by viewModel.inviteCode.collectAsStateWithLifecycle()
     val members by viewModel.members.collectAsStateWithLifecycle()
+    val myRole by viewModel.myRole.collectAsStateWithLifecycle()
+    val isAdmin = myRole == "ADMIN"
 
     var editingName by remember { mutableStateOf(false) }
     var nameDraft by remember(familyName) { mutableStateOf(familyName) }
@@ -241,7 +243,12 @@ fun HavenManagementScreen(
             } else {
                 members.forEach { member ->
                     key(member.id) {
-                        HavenMemberCard(member = member, t = t)
+                        HavenMemberCard(
+                            member = member, t = t, isAdmin = isAdmin,
+                            onKick = { viewModel.kickMember(member.id.toString()) },
+                            onPromote = { viewModel.promoteMember(member.id.toString()) },
+                            onDemote = { viewModel.demoteMember(member.id.toString()) }
+                        )
                     }
                 }
             }
@@ -384,70 +391,90 @@ fun HavenManagementScreen(
 }
 
 @Composable
-private fun HavenMemberCard(member: FamilyMember, t: com.haven.app.ui.theme.HavenColors) {
+private fun HavenMemberCard(
+    member: FamilyMember, t: com.haven.app.ui.theme.HavenColors,
+    isAdmin: Boolean = false,
+    onKick: () -> Unit = {}, onPromote: () -> Unit = {}, onDemote: () -> Unit = {}
+) {
     val memberColor = Color(member.color)
-    HavenCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Box(modifier = Modifier.size(44.dp)) {
-                if (member.photoUrl.isNotEmpty()) {
-                    ProfileImage(
-                        photoUrl = member.photoUrl,
-                        contentDescription = member.name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .border(2.dp, memberColor, RoundedCornerShape(14.dp))
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(memberColor.copy(alpha = 0.1f), RoundedCornerShape(14.dp))
-                            .border(2.dp, memberColor, RoundedCornerShape(14.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            member.initials, fontSize = 18.sp,
-                            fontWeight = FontWeight.Black, color = memberColor,
-                            fontFamily = OutfitFamily
+    var showActions by remember { mutableStateOf(false) }
+
+    HavenCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = if (isAdmin) {{ showActions = !showActions }} else null
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Box(modifier = Modifier.size(44.dp)) {
+                    if (member.photoUrl.isNotEmpty()) {
+                        ProfileImage(
+                            photoUrl = member.photoUrl, contentDescription = member.name,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).border(2.dp, memberColor, RoundedCornerShape(14.dp))
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier.size(44.dp).background(memberColor.copy(alpha = 0.1f), RoundedCornerShape(14.dp)).border(2.dp, memberColor, RoundedCornerShape(14.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(member.initials, fontSize = 18.sp, fontWeight = FontWeight.Black, color = memberColor, fontFamily = OutfitFamily)
+                        }
                     }
                 }
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(member.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily)
+                        if (member.role == "ADMIN") {
+                            Box(
+                                modifier = Modifier.background(t.accent.copy(alpha = 0.1f), RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 1.dp)
+                            ) {
+                                Text("ADMIN", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily)
+                            }
+                        }
+                    }
+                    Text(member.status.displayName(), fontSize = 10.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(modifier = Modifier.size(8.dp).background(if (member.isOnline) t.ok else t.textFade, CircleShape))
+                    Text(if (member.isOnline) "ONLINE" else "OFFLINE", fontSize = 9.sp, color = if (member.isOnline) t.ok else t.textFade, fontFamily = SpaceMonoFamily)
+                }
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    member.name, fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold, color = t.text,
-                    fontFamily = OutfitFamily
-                )
-                Text(
-                    member.status.displayName(),
-                    fontSize = 10.sp, color = t.textFade,
-                    fontFamily = SpaceMonoFamily
-                )
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(
-                            if (member.isOnline) t.ok else t.textFade,
-                            CircleShape
-                        )
-                )
-                Text(
-                    if (member.isOnline) "ONLINE" else "OFFLINE",
-                    fontSize = 9.sp, color = if (member.isOnline) t.ok else t.textFade,
-                    fontFamily = SpaceMonoFamily
-                )
+
+            // Admin actions
+            if (isAdmin && showActions) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().background(if (t.isDark) t.surfaceAlt else t.bgSub).padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (member.role != "ADMIN") {
+                        Box(
+                            modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                                .background(t.accent.copy(alpha = 0.08f))
+                                .clickable { onPromote(); showActions = false }
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) { Text("Make Admin", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = OutfitFamily) }
+                    } else {
+                        Box(
+                            modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                                .background(t.warn.copy(alpha = 0.08f))
+                                .clickable { onDemote(); showActions = false }
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) { Text("Remove Admin", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.warn, fontFamily = OutfitFamily) }
+                    }
+                    Box(
+                        modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp))
+                            .background(t.danger.copy(alpha = 0.08f))
+                            .clickable { onKick(); showActions = false }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) { Text("Kick", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.danger, fontFamily = OutfitFamily) }
+                }
             }
         }
     }

@@ -159,6 +159,21 @@ class HavenApiManager @Inject constructor(
         try { api.updateHaven(hid, mapOf("name" to name)) } catch (_: Exception) {}
     }
 
+    suspend fun kickMember(memberId: String) {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.kickMember(hid, memberId) } catch (_: Exception) {}
+    }
+
+    suspend fun promoteMember(memberId: String) {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.promoteMember(hid, memberId) } catch (_: Exception) {}
+    }
+
+    suspend fun demoteMember(memberId: String) {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.demoteMember(hid, memberId) } catch (_: Exception) {}
+    }
+
     // ── Members (polling-based flow) ──
 
     fun observeMembers(): Flow<List<MemberData>> = flow {

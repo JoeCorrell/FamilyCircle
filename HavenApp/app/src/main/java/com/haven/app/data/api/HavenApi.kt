@@ -26,7 +26,8 @@ data class MemberData(
     val currentAddress: String = "", val speed: Double = 0.0,
     val status: String = "UNKNOWN", val lastSeenTimestamp: Double = 0.0,
     val isOnline: Boolean = false, val photoUrl: String = "",
-    val avatarIcon: String = "", val ringPosition: Double = 0.5, val angle: Double = 0.0
+    val avatarIcon: String = "", val role: String = "MEMBER",
+    val ringPosition: Double = 0.5, val angle: Double = 0.0
 ) {
     fun colorAsLong(): Long = color.toLong()
     fun lastSeenAsLong(): Long = lastSeenTimestamp.toLong()
@@ -161,6 +162,16 @@ interface HavenApi {
 
     @POST("api/notifications/{havenId}")
     suspend fun createNotification(@Path("havenId") havenId: String, @Body body: CreateNotificationRequest): Response<NotificationData>
+
+    // Haven admin actions
+    @POST("api/havens/{havenId}/kick/{memberId}")
+    suspend fun kickMember(@Path("havenId") havenId: String, @Path("memberId") memberId: String): Response<Map<String, Boolean>>
+
+    @POST("api/havens/{havenId}/promote/{memberId}")
+    suspend fun promoteMember(@Path("havenId") havenId: String, @Path("memberId") memberId: String): Response<MemberData>
+
+    @POST("api/havens/{havenId}/demote/{memberId}")
+    suspend fun demoteMember(@Path("havenId") havenId: String, @Path("memberId") memberId: String): Response<MemberData>
 
     // Errands
     @GET("api/errands/{havenId}")

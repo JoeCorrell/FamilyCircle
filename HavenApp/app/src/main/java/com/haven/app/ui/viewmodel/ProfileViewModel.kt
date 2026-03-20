@@ -158,6 +158,22 @@ class ProfileViewModel @Inject constructor(
         return result.isSuccess
     }
 
+    val myRole: StateFlow<String> = myMemberFlow
+        .map { it?.role ?: "MEMBER" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "MEMBER")
+
+    fun kickMember(memberId: String) {
+        viewModelScope.launch { apiManager.kickMember(memberId) }
+    }
+
+    fun promoteMember(memberId: String) {
+        viewModelScope.launch { apiManager.promoteMember(memberId) }
+    }
+
+    fun demoteMember(memberId: String) {
+        viewModelScope.launch { apiManager.demoteMember(memberId) }
+    }
+
     fun updateMemberColor(color: Long) {
         viewModelScope.launch {
             apiManager.updateMyMember(mapOf("color" to color))

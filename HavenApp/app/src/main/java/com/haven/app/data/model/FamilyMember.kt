@@ -21,6 +21,7 @@ data class FamilyMember(
     val isOnline: Boolean = false,
     val photoUrl: String = "",
     val avatarIcon: String = "",
+    val role: String = "MEMBER",
     // Orbit map positioning
     val ringPosition: Float = 0.5f, // 0-1 distance from center
     val angle: Float = 0f // degrees on orbit

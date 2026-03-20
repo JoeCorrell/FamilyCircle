@@ -15,7 +15,7 @@ import com.haven.app.data.model.*
         AppNotification::class,
         EmergencyContact::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

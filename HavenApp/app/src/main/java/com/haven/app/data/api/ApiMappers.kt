@@ -19,6 +19,7 @@ fun MemberData.toFamilyMember(): FamilyMember = FamilyMember(
     isOnline = isOnline,
     photoUrl = photoUrl,
     avatarIcon = avatarIcon,
+    role = role,
     ringPosition = ringPosition.toFloat(),
     angle = angle.toFloat()
 )
