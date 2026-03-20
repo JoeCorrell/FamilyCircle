@@ -207,4 +207,16 @@ fun HavenMainScreen(onSosActivated: () -> Unit, onSignOut: () -> Unit = {}) {
             onActivate = onSosActivated
         )
     }
+
+    // SOS Received overlay
+    val sosVm: com.haven.app.ui.viewmodel.HomeViewModel = hiltViewModel()
+    val sosAlert by sosVm.sosAlert.collectAsStateWithLifecycle()
+    sosAlert?.let { alert ->
+        com.haven.app.ui.dialogs.SosReceivedOverlay(
+            senderName = alert.senderName,
+            latitude = alert.latitude,
+            longitude = alert.longitude,
+            onDismiss = { sosVm.dismissSos() }
+        )
+    }
 }

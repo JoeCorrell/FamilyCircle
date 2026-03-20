@@ -97,6 +97,14 @@ class HavenApiManager @Inject constructor(
     @Volatile
     var _sosCleared = false
 
+    // SOS received state — observed by UI to show full-screen alert
+    data class SosAlert(val senderName: String, val latitude: Double, val longitude: Double)
+    val sosReceived = MutableStateFlow<SosAlert?>(null)
+
+    fun dismissSosAlert() {
+        sosReceived.value = null
+    }
+
     // ── Haven ──
 
     suspend fun createHaven(name: String, userName: String): Result<HavenResponse> {

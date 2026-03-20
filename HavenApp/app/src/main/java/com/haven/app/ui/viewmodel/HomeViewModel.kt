@@ -68,6 +68,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    val sosAlert: StateFlow<com.haven.app.data.api.HavenApiManager.SosAlert?> = apiManager.sosReceived
+
+    fun dismissSos() {
+        apiManager.dismissSosAlert()
+    }
+
     fun switchHaven(havenId: String) {
         viewModelScope.launch {
             apiManager.switchHaven(havenId)

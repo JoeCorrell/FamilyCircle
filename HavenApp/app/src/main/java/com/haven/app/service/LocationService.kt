@@ -216,8 +216,33 @@ class LocationService : Service() {
                             lastSosState = false
                             NotificationManagerCompat.from(this@LocationService).cancel(SOS_NOTIFICATION_ID)
                         }
-                        val (sosActive, sosBy) = apiManager.checkSosActive()
+                        val haven = try {
+                            val hid = apiManager.havenId ?: return@launch
+                            apiManager.api.getHaven(hid).body()
+                        } catch (_: Exception) { null }
+
+                        val sosActive = haven?.activeSos == true
+                        val sosBy = haven?.lastSosBy
+
                         if (sosActive && !lastSosState) {
+                            // Find the SOS sender's coordinates
+                            val sender = haven?.members?.firstOrNull { it.name == sosBy }
+                            val lat = sender?.latitude ?: 0.0
+                            val lng = sender?.longitude ?: 0.0
+
+                            // Set the in-app SOS alert state
+                            apiManager.sosReceived.value = com.haven.app.data.api.HavenApiManager.SosAlert(
+                                senderName = sosBy ?: "Family Member",
+                                latitude = lat, longitude = lng
+                            )
+
+                            // Launch app via notification
+                            val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+                            val pendingIntent = android.app.PendingIntent.getActivity(
+                                this@LocationService, 0, launchIntent,
+                                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+                            )
+
                             val sosNotif = NotificationCompat.Builder(this@LocationService, com.haven.app.HavenApp.SOS_CHANNEL_ID)
                                 .setSmallIcon(R.drawable.ic_sos)
                                 .setContentTitle("SOS ALERT")
@@ -226,6 +251,8 @@ class LocationService : Service() {
                                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                                 .setAutoCancel(false)
                                 .setOngoing(true)
+                                .setContentIntent(pendingIntent)
+                                .setFullScreenIntent(pendingIntent, true)
                                 .setSound(android.net.Uri.parse("android.resource://${packageName}/${R.raw.notification}"))
                                 .setVibrate(longArrayOf(0, 500, 200, 500, 200, 500, 200, 500))
                                 .build()
@@ -239,6 +266,7 @@ class LocationService : Service() {
                             vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 500, 200, 500, 200, 500, 200, 500), -1))
                         } else if (!sosActive && lastSosState) {
                             NotificationManagerCompat.from(this@LocationService).cancel(SOS_NOTIFICATION_ID)
+                            apiManager.sosReceived.value = null
                         }
                         lastSosState = sosActive
                     }
