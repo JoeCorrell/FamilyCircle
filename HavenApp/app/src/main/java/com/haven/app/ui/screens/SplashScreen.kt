@@ -1,23 +1,22 @@
 package com.haven.app.ui.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.haven.app.R
 import com.haven.app.ui.theme.LocalHavenColors
 import com.haven.app.ui.theme.OutfitFamily
 import com.haven.app.ui.theme.SpaceMonoFamily
@@ -142,21 +141,15 @@ fun SplashScreen(onFinished: () -> Unit) {
                     )
                 }
 
-                // Shield icon
-                Box(
+                // App icon
+                Image(
+                    painter = painterResource(R.drawable.ic_launcher_foreground),
+                    contentDescription = "Haven",
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(120.dp)
                         .scale(shieldScale)
                         .alpha(shieldAlpha)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Brush.linearGradient(listOf(t.accent, t.accentMid))),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "H", fontSize = 32.sp, fontWeight = FontWeight.Black,
-                        color = Color.White, fontFamily = SpaceMonoFamily, letterSpacing = 2.sp
-                    )
-                }
+                )
             }
 
             Spacer(Modifier.height(28.dp))
