@@ -37,6 +37,9 @@ class LocationService : Service() {
     private var lastAddress = "Unknown"
     private var lastBatteryAlertTime = 0L
     private var lastSpeedAlertTime = 0L
+    private var lastDriveNotifTime = 0L
+    private var drivingConfirmCount = 0
+    private var stoppedConfirmCount = 0
     private var wasDriving = false
 
     companion object {
@@ -136,10 +139,24 @@ class LocationService : Service() {
                                 notificationHelper.notifySpeedAlert(memberName, speedMph.toInt())
                             }
 
-                            if (status == MemberStatus.DRIVING && !wasDriving) {
-                                notificationHelper.notifyDriveStarted(memberName)
+                            // Require 3 consecutive DRIVING readings before confirming drive
+                            // and 5 consecutive non-DRIVING readings before confirming stop
+                            // Prevents notification spam from GPS speed fluctuations
+                            if (status == MemberStatus.DRIVING) {
+                                drivingConfirmCount++
+                                stoppedConfirmCount = 0
+                                if (!wasDriving && drivingConfirmCount >= 3 && now - lastDriveNotifTime > 5 * 60 * 1000) {
+                                    wasDriving = true
+                                    lastDriveNotifTime = now
+                                    notificationHelper.notifyDriveStarted(memberName)
+                                }
+                            } else {
+                                drivingConfirmCount = 0
+                                stoppedConfirmCount++
+                                if (wasDriving && stoppedConfirmCount >= 5) {
+                                    wasDriving = false
+                                }
                             }
-                            wasDriving = status == MemberStatus.DRIVING
 
                         } catch (_: Exception) {}
                     }
