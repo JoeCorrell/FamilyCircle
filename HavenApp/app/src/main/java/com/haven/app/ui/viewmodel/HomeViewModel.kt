@@ -81,7 +81,9 @@ class HomeViewModel @Inject constructor(
 
     fun dismissSos() {
         apiManager.dismissSosAlert()
-        apiManager._sosCleared = true
+        viewModelScope.launch {
+            apiManager.clearSos()
+        }
     }
 
     fun switchHaven(havenId: String) {

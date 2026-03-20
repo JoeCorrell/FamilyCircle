@@ -10,6 +10,11 @@ import android.os.Vibrator
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import com.haven.app.data.api.HavenApiManager
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,8 +38,10 @@ import androidx.compose.ui.unit.sp
 import com.haven.app.ui.theme.OutfitFamily
 import com.haven.app.ui.theme.SpaceMonoFamily
 
+@AndroidEntryPoint
 class SosAlertActivity : ComponentActivity() {
 
+    @Inject lateinit var apiManager: HavenApiManager
     private var vibrator: Vibrator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +92,8 @@ class SosAlertActivity : ComponentActivity() {
                 },
                 onDismiss = {
                     vibrator?.cancel()
+                    apiManager.dismissSosAlert()
+                    MainScope().launch { apiManager.clearSos() }
                     finish()
                 }
             )
