@@ -2,6 +2,8 @@ package com.haven.app.ui.screens
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -57,14 +59,14 @@ fun ThemesScreen(
             )
         }
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(bottom = 18.dp)
         ) {
-            HavenThemes.all.forEach { theme ->
+            items(HavenThemes.all, key = { it.key }) { theme ->
                 val isSelected = theme.key == currentThemeKey
 
                 HavenCard(
@@ -143,7 +145,6 @@ fun ThemesScreen(
                     }
                 }
             }
-            Spacer(Modifier.height(18.dp))
         }
     }
 }
