@@ -23,6 +23,8 @@ import com.haven.app.data.preferences.UserPreferences
 import com.haven.app.service.LocationService
 import com.haven.app.service.SosService
 import com.haven.app.ui.components.BottomNavBar
+import com.haven.app.ui.components.HavenTopBar
+import com.haven.app.ui.viewmodel.SettingsViewModel
 import com.haven.app.ui.dialogs.SosDialog
 import com.haven.app.ui.navigation.*
 import com.haven.app.ui.screens.AuthScreen
@@ -178,8 +180,14 @@ fun HavenMainScreen(onSosActivated: () -> Unit, onSignOut: () -> Unit = {}) {
     var settingsSection by remember { mutableStateOf<SettingsSection?>(null) }
     var showSos by remember { mutableStateOf(false) }
 
+    val settingsVm: SettingsViewModel = hiltViewModel()
+    val topBarUserName by settingsVm.userName.collectAsStateWithLifecycle()
+    val topBarUserColor by settingsVm.userColor.collectAsStateWithLifecycle()
+    val topBarUserPhoto by settingsVm.userPhotoUrl.collectAsStateWithLifecycle()
+
     val mainTabs = setOf(Routes.HOME, Routes.MAP, Routes.CHAT, Routes.SETTINGS)
     val showBottomNav = currentRoute in mainTabs
+    val showBack = currentRoute != null && currentRoute !in mainTabs
 
     Column(
         modifier = Modifier
@@ -187,6 +195,16 @@ fun HavenMainScreen(onSosActivated: () -> Unit, onSignOut: () -> Unit = {}) {
             .background(t.bg)
             .systemBarsPadding()
     ) {
+        HavenTopBar(
+            showBack = showBack,
+            onBack = { navController.popBackStack() },
+            onProfileClick = {
+                navController.navigate(Routes.PROFILE) { launchSingleTop = true }
+            },
+            userInitials = topBarUserName.take(1).uppercase().ifEmpty { "?" },
+            userColor = topBarUserColor,
+            userPhotoUrl = topBarUserPhoto
+        )
         HavenNavHost(
             navController = navController,
             selectedMember = selectedMember,

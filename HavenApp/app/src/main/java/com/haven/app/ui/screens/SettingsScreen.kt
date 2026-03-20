@@ -97,16 +97,6 @@ fun SettingsScreen(
             .verticalScroll(rememberScrollState())
     ) {
         // Header
-        Text(
-            "Settings",
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            fontSize = 22.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = t.text,
-            fontFamily = OutfitFamily,
-            letterSpacing = (-0.5).sp
-        )
-
         Column(
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)

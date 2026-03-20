@@ -63,39 +63,19 @@ fun HomeScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // ── Header ──
+        // ── Status ──
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text("Haven", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = t.text, fontFamily = OutfitFamily, letterSpacing = (-0.5).sp)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(6.dp).background(t.ok, CircleShape))
-                    Text(
-                        if (members.isEmpty()) "Getting started"
-                        else if (members.all { it.isOnline }) "Everyone's safe"
-                        else "${members.count { it.isOnline }} of ${members.size} online",
-                        fontSize = 11.sp, color = t.textMid, fontFamily = OutfitFamily
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(
-                    modifier = Modifier.size(36.dp).background(t.accentBg, RoundedCornerShape(12.dp)).clickable { onThemesClick() },
-                    contentAlignment = Alignment.Center
-                ) { Icon(Icons.Outlined.Palette, "Themes", Modifier.size(17.dp), tint = t.accent) }
-                Box(
-                    modifier = Modifier.size(36.dp).background(t.accentBg, RoundedCornerShape(12.dp)).clickable { onNotificationsClick() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Outlined.Notifications, "Alerts", Modifier.size(17.dp), tint = t.accent)
-                    if (unreadCount > 0) {
-                        Box(modifier = Modifier.align(Alignment.TopEnd).offset(x = (-4).dp, y = 4.dp).size(7.dp).background(t.danger, CircleShape))
-                    }
-                }
-            }
+            Box(modifier = Modifier.size(6.dp).background(t.ok, CircleShape))
+            Text(
+                if (members.isEmpty()) "Getting started"
+                else if (members.all { it.isOnline }) "Everyone's safe"
+                else "${members.count { it.isOnline }} of ${members.size} online",
+                fontSize = 11.sp, color = t.textMid, fontFamily = OutfitFamily
+            )
         }
 
         // ── Haven Switcher ──

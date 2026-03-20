@@ -118,27 +118,6 @@ fun ProfileScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Header
-        Row(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(t.accentBg, RoundedCornerShape(10.dp))
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.ChevronLeft, "Back", Modifier.size(16.dp), tint = t.accent)
-            }
-            Text(
-                "Edit Profile", fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold, color = t.text,
-                fontFamily = OutfitFamily, letterSpacing = (-0.5).sp
-            )
-        }
 
         Column(
             modifier = Modifier.padding(horizontal = 16.dp),

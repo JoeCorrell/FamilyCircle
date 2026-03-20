@@ -45,7 +45,6 @@ fun ChatScreen(
     val inputText by viewModel.inputText.collectAsStateWithLifecycle()
     val memberColors by viewModel.memberColors.collectAsStateWithLifecycle()
     val errands by viewModel.errands.collectAsStateWithLifecycle()
-    val familyName by viewModel.familyName.collectAsStateWithLifecycle()
     val dismissedErrandIds by viewModel.dismissedErrandIds.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
@@ -61,50 +60,6 @@ fun ChatScreen(
     var errandNote by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize().imePadding()) {
-        // ── Header ──
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(t.card)
-                .border(width = 1.dp, color = t.border)
-                .padding(horizontal = 20.dp, vertical = 14.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        "Chat", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold,
-                        color = t.text, fontFamily = OutfitFamily, letterSpacing = (-0.5).sp
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.size(6.dp).background(t.ok, CircleShape))
-                        Text(
-                            familyName, fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
-                            color = t.textMid, fontFamily = OutfitFamily
-                        )
-                    }
-                }
-                // Member count badge
-                val onlineCount = memberColors.size
-                Box(
-                    modifier = Modifier
-                        .background(t.accentBg, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Text(
-                        "$onlineCount members", fontSize = 10.sp, fontWeight = FontWeight.Bold,
-                        color = t.accent, fontFamily = SpaceMonoFamily
-                    )
-                }
-            }
-        }
-
         // ── Errands Banner ──
         val pendingErrands = errands.filter { it.status == "PENDING" && it.id !in dismissedErrandIds }
         val acceptedErrands = errands.filter { it.status == "ACCEPTED" && it.id !in dismissedErrandIds }
