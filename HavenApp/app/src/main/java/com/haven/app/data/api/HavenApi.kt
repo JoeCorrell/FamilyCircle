@@ -63,6 +63,17 @@ data class NotificationData(
 
 data class CreateNotificationRequest(val title: String, val color: Long)
 
+data class ErrandData(
+    val id: String = "", val havenId: String = "", val senderUid: String = "",
+    val senderName: String = "", val item: String = "", val address: String = "",
+    val note: String = "", val status: String = "PENDING",
+    val acceptedBy: String? = null, val acceptedName: String? = null,
+    val timestamp: Double = 0.0
+)
+
+data class CreateErrandRequest(val senderName: String, val item: String, val address: String = "", val note: String = "")
+data class AcceptErrandRequest(val acceptedName: String)
+
 data class SosRequest(
     val senderName: String, val latitude: Double,
     val longitude: Double, val message: String
@@ -145,6 +156,16 @@ interface HavenApi {
 
     @POST("api/notifications/{havenId}")
     suspend fun createNotification(@Path("havenId") havenId: String, @Body body: CreateNotificationRequest): Response<NotificationData>
+
+    // Errands
+    @GET("api/errands/{havenId}")
+    suspend fun getErrands(@Path("havenId") havenId: String): Response<List<ErrandData>>
+
+    @POST("api/errands/{havenId}")
+    suspend fun createErrand(@Path("havenId") havenId: String, @Body body: CreateErrandRequest): Response<ErrandData>
+
+    @POST("api/errands/{havenId}/{errandId}/accept")
+    suspend fun acceptErrand(@Path("havenId") havenId: String, @Path("errandId") errandId: String, @Body body: AcceptErrandRequest): Response<ErrandData>
 
     // SOS
     @POST("api/sos/{havenId}")

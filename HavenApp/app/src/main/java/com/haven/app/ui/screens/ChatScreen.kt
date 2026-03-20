@@ -11,8 +11,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.outlined.Assignment
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,6 +42,7 @@ fun ChatScreen(
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val inputText by viewModel.inputText.collectAsStateWithLifecycle()
     val memberColors by viewModel.memberColors.collectAsStateWithLifecycle()
+    val errands by viewModel.errands.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size) {
@@ -89,7 +92,7 @@ fun ChatScreen(
             }
         }
 
-        // Messages
+        // Messages + Errands
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -98,17 +101,24 @@ fun ChatScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 6.dp)
         ) {
-            items(messages, key = { it.id }) { message ->
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = true,
-                    enter = androidx.compose.animation.fadeIn(
-                        animationSpec = androidx.compose.animation.core.tween(300)
-                    ) + androidx.compose.animation.slideInVertically(
-                        animationSpec = androidx.compose.animation.core.tween(300)
-                    ) { it / 2 }
-                ) {
-                    MessageBubble(message, memberColors, t)
+            // Active errands at top
+            val pendingErrands = errands.filter { it.status == "PENDING" }
+            if (pendingErrands.isNotEmpty()) {
+                items(pendingErrands, key = { "errand_${it.id}" }) { errand ->
+                    ErrandCard(errand, viewModel, t)
                 }
+            }
+
+            // Accepted errands (collapsed)
+            val acceptedErrands = errands.filter { it.status == "ACCEPTED" }
+            if (acceptedErrands.isNotEmpty()) {
+                items(acceptedErrands, key = { "errand_${it.id}" }) { errand ->
+                    AcceptedErrandCard(errand, t)
+                }
+            }
+
+            items(messages, key = { it.id }) { message ->
+                MessageBubble(message, memberColors, t)
             }
         }
 
@@ -216,13 +226,7 @@ fun ChatScreen(
                             )
                         )
                         .clickable(enabled = hasItem) {
-                            val text = buildString {
-                                append("[Errand] ${errandItem.trim()}")
-                                if (errandAddr.isNotBlank()) append("\nLocation: ${errandAddr.trim()}")
-                                if (errandNote.isNotBlank()) append("\nNote: ${errandNote.trim()}")
-                            }
-                            viewModel.updateInput(text)
-                            viewModel.sendMessage()
+                            viewModel.sendErrand(errandItem.trim(), errandAddr.trim(), errandNote.trim())
                             errandItem = ""; errandAddr = ""; errandNote = ""
                             errandMode = false
                         }
@@ -389,6 +393,111 @@ private fun MessageBubble(
                 fontFamily = SpaceMonoFamily,
                 modifier = Modifier.align(Alignment.End)
             )
+        }
+    }
+}
+
+@Composable
+private fun ErrandCard(
+    errand: com.haven.app.data.api.ErrandData,
+    viewModel: com.haven.app.ui.viewmodel.ChatViewModel,
+    t: com.haven.app.ui.theme.HavenColors
+) {
+    val isMe = errand.senderUid == viewModel.myUserId
+    com.haven.app.ui.components.HavenCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            // Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(t.warn.copy(alpha = 0.06f))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(
+                    modifier = Modifier.size(36.dp)
+                        .background(t.warn.copy(alpha = 0.12f), RoundedCornerShape(11.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Outlined.Assignment, "Errand", Modifier.size(16.dp), tint = t.warn)
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("ERRAND REQUEST", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = t.warn, fontFamily = SpaceMonoFamily, letterSpacing = 1.2.sp)
+                    Text(errand.item, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                }
+            }
+            // Details
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+                Text("${errand.senderName} needs this", fontSize = 11.sp, color = t.textMid, fontFamily = OutfitFamily)
+                if (errand.address.isNotEmpty()) {
+                    Spacer(Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.LocationOn, "Location", Modifier.size(12.dp), tint = t.accent)
+                        Text(errand.address, fontSize = 11.sp, color = t.textMid, fontFamily = OutfitFamily)
+                    }
+                }
+                if (errand.note.isNotEmpty()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(errand.note, fontSize = 11.sp, color = t.textFade, fontFamily = OutfitFamily)
+                }
+                // Accept/Decline (only for non-sender)
+                if (!isMe) {
+                    Spacer(Modifier.height(10.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Box(
+                            modifier = Modifier.weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(t.ok.copy(alpha = 0.08f))
+                                .border(1.5.dp, t.ok.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                                .clickable { viewModel.acceptErrand(errand.id) }
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("I'll Do It", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = t.ok, fontFamily = OutfitFamily)
+                        }
+                        Box(
+                            modifier = Modifier.weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (t.isDark) t.surfaceAlt else t.bgSub)
+                                .border(1.dp, t.border, RoundedCornerShape(12.dp))
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Can't", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = t.textMid, fontFamily = OutfitFamily)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AcceptedErrandCard(
+    errand: com.haven.app.data.api.ErrandData,
+    t: com.haven.app.ui.theme.HavenColors
+) {
+    com.haven.app.ui.components.HavenCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(t.ok.copy(alpha = 0.04f))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier.size(32.dp)
+                    .background(t.ok.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.Check, "Done", Modifier.size(14.dp), tint = t.ok)
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(errand.item, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                Text("${errand.acceptedName ?: "Someone"} is on it", fontSize = 10.sp, color = t.ok, fontFamily = SpaceMonoFamily)
+            }
         }
     }
 }

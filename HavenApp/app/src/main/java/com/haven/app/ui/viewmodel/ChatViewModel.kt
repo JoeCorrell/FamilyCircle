@@ -2,6 +2,7 @@ package com.haven.app.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.haven.app.data.api.ErrandData
 import com.haven.app.data.api.HavenApiManager
 import com.haven.app.data.model.Message
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +22,7 @@ class ChatViewModel @Inject constructor(
         .map { members -> members.associate { it.userId to it.name } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    private val myMemberName: StateFlow<String> = membersFlow
+    val myMemberName: StateFlow<String> = membersFlow
         .map { members ->
             val myUid = apiManager.userId
             members.firstOrNull { it.userId == myUid }?.name ?: "You"
@@ -49,6 +50,9 @@ class ChatViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val errands: StateFlow<List<ErrandData>> = apiManager.observeErrands()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val familyName: StateFlow<String> = flow {
         val haven = apiManager.getHaven()
         emit(haven?.name ?: "My Family")
@@ -56,6 +60,8 @@ class ChatViewModel @Inject constructor(
 
     private val _inputText = MutableStateFlow("")
     val inputText: StateFlow<String> = _inputText.asStateFlow()
+
+    val myUserId: String? get() = apiManager.userId
 
     fun updateInput(text: String) { _inputText.value = text }
 
@@ -65,6 +71,19 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             apiManager.sendMessage(myMemberName.value, text)
             _inputText.value = ""
+        }
+    }
+
+    fun sendErrand(item: String, address: String, note: String) {
+        if (item.isBlank()) return
+        viewModelScope.launch {
+            apiManager.createErrand(myMemberName.value, item, address, note)
+        }
+    }
+
+    fun acceptErrand(errandId: String) {
+        viewModelScope.launch {
+            apiManager.acceptErrand(errandId, myMemberName.value)
         }
     }
 }

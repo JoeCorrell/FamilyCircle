@@ -229,6 +229,32 @@ class HavenApiManager @Inject constructor(
         try { api.createNotification(hid, CreateNotificationRequest(title, color)) } catch (_: Exception) {}
     }
 
+    // ── Errands ──
+
+    fun observeErrands(): Flow<List<ErrandData>> = flow {
+        var firstLoad = true
+        while (true) {
+            val hid = tokenStore.getHavenId()
+            if (hid != null) {
+                try {
+                    val resp = api.getErrands(hid)
+                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
+                } catch (_: Exception) {}
+            }
+            delay(if (firstLoad) 1000 else 5000)
+        }
+    }.distinctUntilChanged()
+
+    suspend fun createErrand(senderName: String, item: String, address: String = "", note: String = "") {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.createErrand(hid, CreateErrandRequest(senderName, item, address, note)) } catch (_: Exception) {}
+    }
+
+    suspend fun acceptErrand(errandId: String, acceptedName: String) {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.acceptErrand(hid, errandId, AcceptErrandRequest(acceptedName)) } catch (_: Exception) {}
+    }
+
     // ── SOS ──
 
     suspend fun activateSos(senderName: String, lat: Double, lng: Double) {
