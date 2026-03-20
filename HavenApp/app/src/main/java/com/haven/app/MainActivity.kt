@@ -57,6 +57,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestPermissions()
+        checkFullScreenIntentPermission()
 
         setContent {
             val themeKey by userPreferences.theme.collectAsStateWithLifecycle(initialValue = "sand")
@@ -81,6 +82,19 @@ class MainActivity : ComponentActivity() {
             perms.add(Manifest.permission.POST_NOTIFICATIONS)
         }
         permissionRequest.launch(perms.toTypedArray())
+    }
+
+    private fun checkFullScreenIntentPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val notifManager = getSystemService(android.app.NotificationManager::class.java)
+            if (!notifManager.canUseFullScreenIntent()) {
+                val intent = android.content.Intent(
+                    android.provider.Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                    android.net.Uri.parse("package:$packageName")
+                )
+                startActivity(intent)
+            }
+        }
     }
 
     private fun startLocationService() {
