@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Warm sand base -->
+    <path
+        android:fillColor="#F5EDE0"
+        android:pathData="M0,0h108v108h-108z"/>
+    <!-- Subtle warm radial accent -->
+    <path
+        android:fillColor="#08C2410C"
+        android:pathData="M54,54m-50,0a50,50 0,1,1 100,0a50,50 0,1,1 -100,0" />
+    <!-- Corner accents for depth -->
+    <path
+        android:fillColor="#06000000"
+        android:pathData="M0,0 L108,0 L108,108 Z" />
+</vector>

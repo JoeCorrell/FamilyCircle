@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Haven</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_radar">Radar</string>
+    <string name="tab_safety">Safety</string>
+    <string name="tab_chat">Chat</string>
+    <string name="tab_settings">More</string>
+    <string name="sos_title">Emergency</string>
+    <string name="sos_description">Alerts all family members with your live location and contacts emergency services.</string>
+    <string name="sos_activate">Activate SOS</string>
+    <string name="sos_sending">Sending alert...</string>
+    <string name="sos_sent">Alert Sent</string>
+    <string name="sos_members_notified">All members notified</string>
+    <string name="cancel">Cancel</string>
+    <string name="location_notification_title">Haven is active</string>
+    <string name="location_notification_text">Sharing your location with family</string>
+</resources>

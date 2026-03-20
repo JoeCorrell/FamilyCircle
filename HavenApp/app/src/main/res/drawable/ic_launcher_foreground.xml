@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Outer glow circle -->
+    <path
+        android:fillColor="#22C2410C"
+        android:pathData="M54,54m-34,0a34,34 0,1,1 68,0a34,34 0,1,1 -68,0" />
+
+    <!-- Rounded shield shape with softer curves -->
+    <path
+        android:fillColor="#C2410C"
+        android:pathData="M54,22
+            C54,22 76,30 76,30
+            Q78,31 78,33
+            L78,52
+            C78,66 68,78 54,84
+            C40,78 30,66 30,52
+            L30,33
+            Q30,31 32,30
+            C32,30 54,22 54,22Z" />
+
+    <!-- Inner shield highlight (lighter) -->
+    <path
+        android:fillColor="#11FFFFFF"
+        android:pathData="M54,26
+            C54,26 73,33 73,33
+            L73,51
+            C73,63 65,73 54,78
+            C43,73 35,63 35,51
+            L35,33
+            C35,33 54,26 54,26Z" />
+
+    <!-- H letter - refined with rounded ends -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M43,40
+            Q43,39 44,39 L47,39 Q48,39 48,40
+            L48,50 L60,50
+            L60,40 Q60,39 61,39 L64,39 Q65,39 65,40
+            L65,64 Q65,65 64,65 L61,65 Q60,65 60,64
+            L60,54 L48,54
+            L48,64 Q48,65 47,65 L44,65 Q43,65 43,64 Z" />
+
+    <!-- Small location pin dot below shield -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.5"
+        android:pathData="M54,88m-2.5,0a2.5,2.5 0,1,1 5,0a2.5,2.5 0,1,1 -5,0" />
+</vector>
