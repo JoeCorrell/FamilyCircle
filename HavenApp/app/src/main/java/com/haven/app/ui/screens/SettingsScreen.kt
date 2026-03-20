@@ -67,7 +67,7 @@ fun SettingsScreen(
     val userPhotoUrl by viewModel.userPhotoUrl.collectAsStateWithLifecycle()
     val userAvatarIcon by viewModel.userAvatarIcon.collectAsStateWithLifecycle()
     val userColor by viewModel.userColor.collectAsStateWithLifecycle()
-    val userEmail = viewModel.userEmail
+    val userEmail by viewModel.userEmail.collectAsStateWithLifecycle()
 
     val avatarIconMap = mapOf(
         "Person" to Icons.Outlined.Person, "Face" to Icons.Outlined.Face,

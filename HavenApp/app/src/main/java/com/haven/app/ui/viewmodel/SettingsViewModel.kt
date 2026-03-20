@@ -27,7 +27,12 @@ class SettingsViewModel @Inject constructor(
         .map { it?.name ?: "" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
-    val userEmail: String = "" // Phone auth, no email
+    val userEmail: StateFlow<String> = flow {
+        try {
+            val resp = apiManager.api.me()
+            emit(resp.body()?.email ?: resp.body()?.phone ?: "")
+        } catch (_: Exception) { emit("") }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     val userPhotoUrl: StateFlow<String> = myMemberFlow
         .map { it?.photoUrl ?: "" }
