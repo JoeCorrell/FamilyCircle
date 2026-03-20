@@ -8,6 +8,7 @@ import com.haven.app.data.api.HavenInfo
 import com.haven.app.data.api.toFamilyMember
 import com.haven.app.data.model.FamilyMember
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -50,21 +51,19 @@ class HomeViewModel @Inject constructor(
         .map { it.take(3) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _myHavens = MutableStateFlow<List<HavenInfo>>(emptyList())
-    val myHavens: StateFlow<List<HavenInfo>> = _myHavens.asStateFlow()
+    val myHavens: StateFlow<List<HavenInfo>> = flow {
+        while (true) {
+            val havens = apiManager.getMyHavens()
+            if (havens.isNotEmpty()) emit(havens)
+            delay(10000)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val activeHavenId: String? get() = apiManager.havenId
-
-    init {
-        viewModelScope.launch {
-            _myHavens.value = apiManager.getMyHavens()
-        }
-    }
 
     fun switchHaven(havenId: String) {
         viewModelScope.launch {
             apiManager.switchHaven(havenId)
-            _myHavens.value = apiManager.getMyHavens()
         }
     }
 }
