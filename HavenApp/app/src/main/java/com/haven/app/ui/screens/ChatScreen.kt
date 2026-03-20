@@ -358,7 +358,7 @@ private fun MessageBubble(message: Message, memberColors: Map<String, Long>, t: 
 }
 
 @Composable
-private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: ChatViewModel, t: HavenColors, onDismiss: () -> Unit) {
+private fun SwipeDismissible(onDismiss: () -> Unit, content: @Composable () -> Unit) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { it != SwipeToDismissBoxValue.Settled }
     )
@@ -376,7 +376,12 @@ private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: Cha
                 Icon(Icons.Outlined.Close, "Dismiss", Modifier.padding(horizontal = 20.dp).size(20.dp), tint = Color(0xFFEF4444))
             }
         }
-    ) {
+    ) { content() }
+}
+
+@Composable
+private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: ChatViewModel, t: HavenColors, onDismiss: () -> Unit) {
+    SwipeDismissible(onDismiss) {
     val isMe = errand.senderUid == viewModel.myUserId
     HavenCard(modifier = Modifier.fillMaxWidth()) {
         Column {
@@ -446,24 +451,7 @@ private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: Cha
 
 @Composable
 private fun AcceptedErrandCard(errand: com.haven.app.data.api.ErrandData, t: HavenColors, onDismiss: () -> Unit) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { it != SwipeToDismissBoxValue.Settled }
-    )
-    LaunchedEffect(dismissState.currentValue) {
-        if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) onDismiss()
-    }
-    SwipeToDismissBox(
-        state = dismissState,
-        backgroundContent = {
-            val alignment = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) Alignment.CenterEnd else Alignment.CenterStart
-            Box(
-                Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(Color(0xFFEF4444).copy(alpha = 0.1f)),
-                contentAlignment = alignment
-            ) {
-                Icon(Icons.Outlined.Close, "Dismiss", Modifier.padding(horizontal = 20.dp).size(20.dp), tint = Color(0xFFEF4444))
-            }
-        }
-    ) {
+    SwipeDismissible(onDismiss) {
         HavenCard(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth()

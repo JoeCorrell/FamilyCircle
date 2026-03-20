@@ -17,11 +17,7 @@ class SettingsViewModel @Inject constructor(
     userPreferences: UserPreferences
 ) : ViewModel() {
 
-    private val myMemberFlow = apiManager.observeMembers()
-        .map { members ->
-            val myUid = apiManager.userId
-            members.firstOrNull { it.userId == myUid }
-        }
+    private val myMemberFlow = apiManager.observeMyMember()
 
     val userName: StateFlow<String> = myMemberFlow
         .map { it?.name ?: "" }

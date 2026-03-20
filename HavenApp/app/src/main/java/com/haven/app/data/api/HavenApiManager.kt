@@ -172,22 +172,27 @@ class HavenApiManager @Inject constructor(
 
     // ── Members (polling-based flow) ──
 
-    fun observeMembers(): Flow<List<MemberData>> = flow {
+    private fun <T> pollingFlow(
+        intervalMs: Long,
+        fetch: suspend (havenId: String) -> retrofit2.Response<List<T>>
+    ): Flow<List<T>> = flow {
         var firstLoad = true
         while (true) {
             val hid = tokenStore.getHavenId()
             if (hid != null) {
                 try {
-                    val resp = api.getMembers(hid)
-                    if (resp.isSuccessful) {
-                        emit(resp.body() ?: emptyList())
-                        firstLoad = false
-                    }
+                    val resp = fetch(hid)
+                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
                 } catch (_: Exception) {}
             }
-            delay(if (firstLoad) 1000 else 5000)
+            delay(if (firstLoad) 1000L else intervalMs)
         }
     }.distinctUntilChanged()
+
+    fun observeMembers(): Flow<List<MemberData>> = pollingFlow(5000) { api.getMembers(it) }
+
+    fun observeMyMember(): Flow<MemberData?> = observeMembers()
+        .map { members -> members.firstOrNull { it.userId == userId } }
 
     suspend fun getMyMember(): MemberData? {
         return try { api.getMyMember().body() } catch (_: Exception) { null }
@@ -207,19 +212,7 @@ class HavenApiManager @Inject constructor(
 
     // ── Messages (polling-based flow) ──
 
-    fun observeMessages(): Flow<List<MessageData>> = flow {
-        var firstLoad = true
-        while (true) {
-            val hid = tokenStore.getHavenId()
-            if (hid != null) {
-                try {
-                    val resp = api.getMessages(hid)
-                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
-                } catch (_: Exception) {}
-            }
-            delay(if (firstLoad) 1000 else 3000)
-        }
-    }.distinctUntilChanged()
+    fun observeMessages(): Flow<List<MessageData>> = pollingFlow(3000) { api.getMessages(it) }
 
     suspend fun sendMessage(senderName: String, text: String) {
         val hid = tokenStore.getHavenId() ?: return
@@ -228,19 +221,7 @@ class HavenApiManager @Inject constructor(
 
     // ── Places (polling-based flow) ──
 
-    fun observePlaces(): Flow<List<PlaceData>> = flow {
-        var firstLoad = true
-        while (true) {
-            val hid = tokenStore.getHavenId()
-            if (hid != null) {
-                try {
-                    val resp = api.getPlaces(hid)
-                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
-                } catch (_: Exception) {}
-            }
-            delay(if (firstLoad) 1000 else 10000)
-        }
-    }.distinctUntilChanged()
+    fun observePlaces(): Flow<List<PlaceData>> = pollingFlow(10000) { api.getPlaces(it) }
 
     suspend fun createPlace(request: CreatePlaceRequest) {
         val hid = tokenStore.getHavenId() ?: return
@@ -254,19 +235,7 @@ class HavenApiManager @Inject constructor(
 
     // ── Notifications (polling-based flow) ──
 
-    fun observeNotifications(): Flow<List<NotificationData>> = flow {
-        var firstLoad = true
-        while (true) {
-            val hid = tokenStore.getHavenId()
-            if (hid != null) {
-                try {
-                    val resp = api.getNotifications(hid)
-                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
-                } catch (_: Exception) {}
-            }
-            delay(if (firstLoad) 1000 else 15000)
-        }
-    }.distinctUntilChanged()
+    fun observeNotifications(): Flow<List<NotificationData>> = pollingFlow(15000) { api.getNotifications(it) }
 
     suspend fun createNotification(title: String, color: Long) {
         val hid = tokenStore.getHavenId() ?: return

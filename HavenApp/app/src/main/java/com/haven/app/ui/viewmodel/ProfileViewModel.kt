@@ -28,11 +28,7 @@ class ProfileViewModel @Inject constructor(
     private val emergencyContactDao: EmergencyContactDao
 ) : ViewModel() {
 
-    private val myMemberFlow = apiManager.observeMembers()
-        .map { members ->
-            val myUid = apiManager.userId
-            members.firstOrNull { it.userId == myUid }
-        }
+    private val myMemberFlow = apiManager.observeMyMember()
 
     val userName: StateFlow<String> = myMemberFlow
         .map { it?.name ?: "" }

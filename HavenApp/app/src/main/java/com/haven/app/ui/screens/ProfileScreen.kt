@@ -56,6 +56,32 @@ private val HUE_OPTIONS = listOf(
 )
 
 @Composable
+private fun ColorSwatchRow(colors: List<Long>, selectedHue: Long, selectionColor: Color, onSelect: (Long) -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        colors.forEach { c ->
+            val color = Color(c)
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(color)
+                    .border(
+                        if (selectedHue == c) 3.dp else 2.dp,
+                        if (selectedHue == c) selectionColor else Color.Transparent,
+                        RoundedCornerShape(10.dp)
+                    )
+                    .clickable { onSelect(c) },
+                contentAlignment = Alignment.Center
+            ) {
+                if (selectedHue == c) {
+                    Icon(Icons.Outlined.Check, "Selected", Modifier.size(14.dp), tint = Color.White)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ProfileScreen(
     onBack: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
@@ -209,57 +235,9 @@ fun ProfileScreen(
                         color = t.textFade, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp
                     )
                     Spacer(Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        HUE_OPTIONS.take(6).forEach { c ->
-                            val color = Color(c)
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(color)
-                                    .border(
-                                        if (selectedHue == c) 3.dp else 2.dp,
-                                        if (selectedHue == c) t.text else Color.Transparent,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .clickable { selectedHue = c },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (selectedHue == c) {
-                                    Icon(Icons.Outlined.Check, "Selected", Modifier.size(14.dp), tint = Color.White)
-                                }
-                            }
-                        }
-                    }
+                    ColorSwatchRow(HUE_OPTIONS.take(6), selectedHue, t.text) { selectedHue = it }
                     Spacer(Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        HUE_OPTIONS.drop(6).forEach { c ->
-                            val color = Color(c)
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(color)
-                                    .border(
-                                        if (selectedHue == c) 3.dp else 2.dp,
-                                        if (selectedHue == c) t.text else Color.Transparent,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .clickable { selectedHue = c },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (selectedHue == c) {
-                                    Icon(Icons.Outlined.Check, "Selected", Modifier.size(14.dp), tint = Color.White)
-                                }
-                            }
-                        }
-                    }
+                    ColorSwatchRow(HUE_OPTIONS.drop(6), selectedHue, t.text) { selectedHue = it }
                 }
             }
 

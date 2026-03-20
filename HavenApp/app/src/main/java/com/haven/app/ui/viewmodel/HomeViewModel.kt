@@ -60,11 +60,8 @@ class HomeViewModel @Inject constructor(
         // SOS state is managed by LocationService polling — HomeViewModel just observes
     }
 
-    val myRole: StateFlow<String> = apiManager.observeMembers()
-        .map { members ->
-            val myUid = apiManager.userId
-            members.firstOrNull { it.userId == myUid }?.role ?: "MEMBER"
-        }
+    val myRole: StateFlow<String> = apiManager.observeMyMember()
+        .map { it?.role ?: "MEMBER" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "MEMBER")
 
     val sosAlert: StateFlow<com.haven.app.data.api.HavenApiManager.SosAlert?> = apiManager.sosReceived
