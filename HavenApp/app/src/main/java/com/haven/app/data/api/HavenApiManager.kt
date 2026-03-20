@@ -11,7 +11,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class HavenApiManager @Inject constructor(
-    private val api: HavenApi,
+    val api: HavenApi,
     private val tokenStore: TokenStore
 ) {
     // ── Auth ──

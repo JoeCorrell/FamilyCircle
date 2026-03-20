@@ -41,6 +41,8 @@ class LocationService : Service() {
     private var drivingConfirmCount = 0
     private var stoppedConfirmCount = 0
     private var wasDriving = false
+    private var lastNotifTimestamp = 0L
+    private var lastMessageCount = -1
 
     companion object {
         const val NOTIFICATION_ID = 1001
@@ -66,6 +68,7 @@ class LocationService : Service() {
             else -> {
                 startForegroundNotification()
                 startLocationUpdates()
+                startNotificationPolling()
             }
         }
         return START_STICKY
@@ -194,6 +197,87 @@ class LocationService : Service() {
                     batteryLevel = battery
                 ))
             } catch (_: Exception) {}
+        }
+    }
+
+    private fun startNotificationPolling() {
+        serviceScope.launch {
+            // Initialize with current counts so we don't spam on first load
+            var initialized = false
+            while (true) {
+                try {
+                    if (!apiManager.isSignedIn) { delay(5000); continue }
+
+                    // Check for new notifications
+                    val notifs = apiManager.observeNotifications()
+                    // We can't easily collect a flow here, so use direct API calls
+                    val myName = apiManager.getMyMember()?.name ?: "You"
+                    val haven = apiManager.getHaven()
+
+                    // Poll messages for new ones
+                    if (haven != null) {
+                        val messages = try {
+                            val resp = apiManager.api.getMessages(haven.id)
+                            if (resp.isSuccessful) resp.body() ?: emptyList() else emptyList()
+                        } catch (_: Exception) { emptyList() }
+
+                        if (!initialized) {
+                            lastMessageCount = messages.size
+                            lastNotifTimestamp = System.currentTimeMillis()
+                            initialized = true
+                        } else if (messages.size > lastMessageCount) {
+                            // New messages since last check
+                            val newMsgs = messages.drop(lastMessageCount)
+                            for (msg in newMsgs) {
+                                if (msg.senderUid != apiManager.userId) {
+                                    val senderName = msg.senderName
+                                    if (msg.text.startsWith("[Errand]")) {
+                                        notificationHelper.showLocalNotification(
+                                            "Haven: $senderName created an errand",
+                                            msg.text.removePrefix("[Errand] ").take(80),
+                                            com.haven.app.HavenApp.MESSAGES_CHANNEL_ID
+                                        )
+                                    } else {
+                                        notificationHelper.showLocalNotification(
+                                            "Haven: $senderName sent a message",
+                                            msg.text.take(80),
+                                            com.haven.app.HavenApp.MESSAGES_CHANNEL_ID
+                                        )
+                                    }
+                                }
+                            }
+                            lastMessageCount = messages.size
+                        }
+
+                        // Check for new errands
+                        val errands = try {
+                            val resp = apiManager.api.getErrands(haven.id)
+                            if (resp.isSuccessful) resp.body() ?: emptyList() else emptyList()
+                        } catch (_: Exception) { emptyList() }
+
+                        for (errand in errands) {
+                            val errandTime = errand.timestamp.toLong()
+                            if (errandTime > lastNotifTimestamp && errand.senderUid != apiManager.userId) {
+                                if (errand.status == "PENDING") {
+                                    notificationHelper.showLocalNotification(
+                                        "Haven: ${errand.senderName} needs something",
+                                        errand.item + if (errand.address.isNotEmpty()) " at ${errand.address}" else "",
+                                        com.haven.app.HavenApp.MESSAGES_CHANNEL_ID
+                                    )
+                                } else if (errand.status == "ACCEPTED" && errand.acceptedBy != apiManager.userId) {
+                                    notificationHelper.showLocalNotification(
+                                        "Haven: ${errand.acceptedName} accepted an errand",
+                                        errand.item,
+                                        com.haven.app.HavenApp.MESSAGES_CHANNEL_ID
+                                    )
+                                }
+                            }
+                        }
+                        lastNotifTimestamp = System.currentTimeMillis()
+                    }
+                } catch (_: Exception) {}
+                delay(10000) // Check every 10 seconds
+            }
         }
     }
 
