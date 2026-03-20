@@ -54,11 +54,13 @@ class NotificationHelper @Inject constructor(
             != PackageManager.PERMISSION_GRANTED
         ) return
 
+        val soundUri = android.net.Uri.parse("android.resource://${context.packageName}/${R.raw.notification}")
         val notifId = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(body)
+            .setSound(soundUri)
             .setPriority(
                 when (channelId) {
                     HavenApp.SOS_CHANNEL_ID -> NotificationCompat.PRIORITY_HIGH
