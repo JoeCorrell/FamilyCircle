@@ -374,43 +374,49 @@ fun MapScreen(
                 Spacer(Modifier.height(8.dp))
 
             } ?: run {
-                // ── Member Avatars Row (no selection) ──
+                // ── Member Cards Row (no selection) ──
                 LazyRow(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(members, key = { it.id }) { member ->
                         val mc = Color(member.color)
-                        Column(
-                            modifier = Modifier.clickable {
+                        HavenCard(
+                            modifier = Modifier.width(80.dp),
+                            cornerRadius = 16.dp,
+                            onClick = {
                                 viewModel.selectMember(member)
                                 if (member.latitude != 0.0 || member.longitude != 0.0) {
                                     scope.launch { cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(member.latitude, member.longitude), 16f), 800) }
                                 }
-                            },
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            }
                         ) {
-                            Box(modifier = Modifier.size(48.dp)) {
-                                if (member.photoUrl.isNotEmpty()) {
-                                    AsyncImage(
-                                        model = member.photoUrl, contentDescription = member.name,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.size(48.dp).clip(CircleShape).border(2.5.dp, mc, CircleShape)
-                                    )
-                                } else {
-                                    Box(
-                                        modifier = Modifier.size(48.dp).background(mc.copy(alpha = 0.1f), CircleShape).border(2.5.dp, mc, CircleShape),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(member.initials, fontSize = 18.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(modifier = Modifier.size(48.dp)) {
+                                    if (member.photoUrl.isNotEmpty()) {
+                                        AsyncImage(
+                                            model = member.photoUrl, contentDescription = member.name,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).border(2.5.dp, mc, RoundedCornerShape(14.dp))
+                                        )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier.size(48.dp).background(mc.copy(alpha = 0.1f), RoundedCornerShape(14.dp)).border(2.5.dp, mc, RoundedCornerShape(14.dp)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(member.initials, fontSize = 18.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
+                                        }
+                                    }
+                                    if (member.isOnline) {
+                                        Box(modifier = Modifier.align(Alignment.BottomEnd).size(12.dp).background(t.ok, CircleShape).border(2.dp, t.card, CircleShape))
                                     }
                                 }
-                                if (member.isOnline) {
-                                    Box(modifier = Modifier.align(Alignment.BottomEnd).size(12.dp).background(t.ok, CircleShape).border(2.dp, t.card, CircleShape))
-                                }
+                                Spacer(Modifier.height(6.dp))
+                                Text(member.name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1)
                             }
-                            Spacer(Modifier.height(4.dp))
-                            Text(member.name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1)
                         }
                     }
                 }
