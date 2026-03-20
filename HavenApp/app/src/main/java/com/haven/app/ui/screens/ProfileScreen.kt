@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.haven.app.ui.components.ProfileImage
 import com.haven.app.ui.components.HavenCard
 import com.haven.app.ui.theme.LocalHavenColors
 import com.haven.app.ui.theme.OutfitFamily
@@ -135,8 +136,8 @@ fun ProfileScreen(
                         val hueColor = Color(selectedHue)
                         val iconEntry = AVATAR_ICONS.firstOrNull { it.first == selectedIcon }
                         if (photoUrl.isNotEmpty() && selectedIcon.isEmpty()) {
-                            AsyncImage(
-                                model = photoUrl,
+                            ProfileImage(
+                                photoUrl = photoUrl,
                                 contentDescription = "Profile photo",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier

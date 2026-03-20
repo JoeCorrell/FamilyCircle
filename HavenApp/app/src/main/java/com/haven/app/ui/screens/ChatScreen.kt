@@ -230,7 +230,7 @@ fun ChatScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "Send Errand to Circle",
+                        "Send Errand to Haven",
                         fontSize = 13.sp, fontWeight = FontWeight.Bold,
                         color = if (hasItem) Color.White else t.textFade,
                         fontFamily = OutfitFamily

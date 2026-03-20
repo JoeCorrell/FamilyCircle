@@ -72,7 +72,7 @@ fun CreateJoinHavenScreen(
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Create a new family circle or join an existing one with an invite code.",
+            "Create a new Haven or join an existing one with an invite code.",
             fontSize = 13.sp, color = t.textMid, fontFamily = OutfitFamily,
             textAlign = TextAlign.Center, lineHeight = 20.sp
         )
@@ -107,7 +107,7 @@ fun CreateJoinHavenScreen(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Start a new family circle. You'll get an invite code to share with your family.",
+                        "Start a new Haven. You'll get an invite code to share with your family.",
                         fontSize = 12.sp, color = t.textMid,
                         fontFamily = OutfitFamily, lineHeight = 18.sp
                     )
@@ -121,7 +121,7 @@ fun CreateJoinHavenScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Create New Circle", fontSize = 14.sp,
+                            "Create New Haven", fontSize = 14.sp,
                             fontWeight = FontWeight.Bold, color = Color.White,
                             fontFamily = OutfitFamily
                         )

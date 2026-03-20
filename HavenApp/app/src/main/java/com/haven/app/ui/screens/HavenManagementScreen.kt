@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.haven.app.ui.components.ProfileImage
 import com.haven.app.data.model.FamilyMember
 import com.haven.app.ui.components.HavenCard
 import com.haven.app.ui.theme.LocalHavenColors
@@ -69,7 +70,7 @@ fun HavenManagementScreen(
                 Icon(Icons.Outlined.ChevronLeft, "Back", Modifier.size(16.dp), tint = t.accent)
             }
             Text(
-                "Circle", fontSize = 22.sp,
+                "Haven", fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold, color = t.text,
                 fontFamily = OutfitFamily, letterSpacing = (-0.5).sp
             )
@@ -128,7 +129,7 @@ fun HavenManagementScreen(
                             modifier = Modifier.clickable { editingName = true }
                         ) {
                             Text(
-                                familyName.ifEmpty { "Tap to set circle name" },
+                                familyName.ifEmpty { "Tap to set Haven name" },
                                 fontSize = 20.sp, fontWeight = FontWeight.ExtraBold,
                                 color = if (familyName.isEmpty()) t.textFade else t.text,
                                 fontFamily = OutfitFamily, letterSpacing = (-0.3).sp
@@ -255,8 +256,8 @@ private fun HavenMemberCard(member: FamilyMember, t: com.haven.app.ui.theme.Have
         ) {
             Box(modifier = Modifier.size(44.dp)) {
                 if (member.photoUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = member.photoUrl,
+                    ProfileImage(
+                        photoUrl = member.photoUrl,
                         contentDescription = member.name,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier

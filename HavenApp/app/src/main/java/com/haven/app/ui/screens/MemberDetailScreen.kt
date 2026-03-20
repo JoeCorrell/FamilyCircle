@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.haven.app.ui.components.ProfileImage
 import com.haven.app.data.model.FamilyMember
 import com.haven.app.ui.components.BatteryIndicator
 import com.haven.app.ui.components.HavenCard
@@ -97,8 +98,8 @@ fun MemberDetailScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (member.photoUrl.isNotEmpty()) {
-                        AsyncImage(
-                            model = member.photoUrl,
+                        ProfileImage(
+                            photoUrl = member.photoUrl,
                             contentDescription = member.name,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

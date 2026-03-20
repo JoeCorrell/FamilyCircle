@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.haven.app.ui.components.ProfileImage
 import com.haven.app.ui.components.HavenCard
 import com.haven.app.ui.theme.HavenColors
 import com.haven.app.ui.theme.LocalHavenColors
@@ -83,7 +84,7 @@ fun SettingsScreen(
     )
     val locationSection = SettingsSection(
         Icons.Outlined.LocationOn, "Location", "Sharing & precision",
-        listOf("Share with Circle", "Precision", "Background Updates", "Wi-Fi Only", "History")
+        listOf("Share with Haven", "Precision", "Background Updates", "Wi-Fi Only", "History")
     )
     val privacySection = SettingsSection(
         Icons.Outlined.Lock, "Privacy", "Ghost mode & data",
@@ -159,8 +160,8 @@ fun SettingsScreen(
                         val resolvedIcon = avatarIconMap[userAvatarIcon]
                         val hueColor = Color(userColor)
                         if (userPhotoUrl.isNotEmpty() && userAvatarIcon.isEmpty()) {
-                            AsyncImage(
-                                model = userPhotoUrl,
+                            ProfileImage(
+                                photoUrl = userPhotoUrl,
                                 contentDescription = "Avatar",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -214,7 +215,7 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                StatCell("1", "CIRCLES", t.accent, t, Modifier.weight(1f))
+                StatCell("1", "HAVEN", t.accent, t, Modifier.weight(1f))
                 StatCell("$memberCount", "MEMBERS", t.ok, t, Modifier.weight(1f))
                 StatCell("0", "DRIVES", t.warn, t, Modifier.weight(1f))
                 StatCell("0", "ALERTS", t.danger, t, Modifier.weight(1f))
@@ -243,7 +244,7 @@ fun SettingsScreen(
                             Icon(Icons.Outlined.Add, "Join", Modifier.size(16.dp), tint = t.ok)
                         }
                         Column {
-                            Text("Join Circle", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                            Text("Join Haven", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
                             Text("INVITE CODE", fontSize = 9.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                         }
                     }
@@ -282,7 +283,7 @@ fun SettingsScreen(
             // ── MY HAVEN ──
             SectionLabel("MY HAVEN", t)
             SettingsRow(
-                icon = Icons.Outlined.Person, title = "Circles",
+                icon = Icons.Outlined.Person, title = "Haven",
                 desc = "$memberCount members",
                 isFirst = true, onClick = onCirclesClick, t = t
             )

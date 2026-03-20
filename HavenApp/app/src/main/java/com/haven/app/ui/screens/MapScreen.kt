@@ -34,6 +34,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.haven.app.ui.components.ProfileImage
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -163,7 +164,7 @@ fun MapScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             if (member.photoUrl.isNotEmpty()) {
-                                                AsyncImage(model = member.photoUrl, contentDescription = member.name, contentScale = ContentScale.Crop,
+                                                ProfileImage(photoUrl = member.photoUrl, contentDescription = member.name, contentScale = ContentScale.Crop,
                                                     modifier = Modifier.size(if (isSel) 46.dp else 38.dp).clip(CircleShape))
                                             } else {
                                                 Text(member.initials, fontSize = if (isSel) 20.sp else 16.sp, fontWeight = FontWeight.Black,
@@ -274,7 +275,7 @@ fun MapScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             if (member.photoUrl.isNotEmpty()) {
-                                AsyncImage(model = member.photoUrl, contentDescription = member.name, contentScale = ContentScale.Crop,
+                                ProfileImage(photoUrl = member.photoUrl, contentDescription = member.name, contentScale = ContentScale.Crop,
                                     modifier = Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)))
                             } else {
                                 Text(member.initials, fontSize = 19.sp, fontWeight = FontWeight.Black, color = memberColor, fontFamily = OutfitFamily)
@@ -397,8 +398,8 @@ fun MapScreen(
                             ) {
                                 Box(modifier = Modifier.size(48.dp)) {
                                     if (member.photoUrl.isNotEmpty()) {
-                                        AsyncImage(
-                                            model = member.photoUrl, contentDescription = member.name,
+                                        ProfileImage(
+                                            photoUrl = member.photoUrl, contentDescription = member.name,
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).border(2.5.dp, mc, RoundedCornerShape(14.dp))
                                         )
