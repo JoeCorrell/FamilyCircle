@@ -150,7 +150,7 @@ fun ChatScreen(
             verticalArrangement = Arrangement.spacedBy(4.dp),
             contentPadding = PaddingValues(bottom = 6.dp)
         ) {
-            items(messages, key = { it.id }) { message ->
+            items(messages, key = { "${it.timestamp}_${it.senderName}" }) { message ->
                 AnimatedVisibility(
                     visible = true,
                     enter = fadeIn(tween(200)) + slideInVertically(tween(200)) { it / 3 }

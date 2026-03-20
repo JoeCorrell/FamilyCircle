@@ -30,11 +30,6 @@ class MapViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val familyName: StateFlow<String> = flow {
-        val haven = apiManager.getHaven()
-        emit(haven?.name ?: "My Family")
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "My Family")
-
     private val _selectedMember = MutableStateFlow<FamilyMember?>(null)
     val selectedMember: StateFlow<FamilyMember?> = _selectedMember.asStateFlow()
 

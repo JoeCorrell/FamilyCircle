@@ -159,14 +159,17 @@ fun HomeScreen(
                         }
                         Box(Modifier.fillMaxWidth().height(1.dp).background(t.border))
                         Row(modifier = Modifier.fillMaxWidth()) {
-                            members.forEachIndexed { index, member ->
+                            val displayMembers = members.take(5)
+                            val overflow = members.size - displayMembers.size
+                            displayMembers.forEachIndexed { index, member ->
                                 val mc = Color(member.color)
+                                val isLast = index == displayMembers.size - 1 && overflow == 0
                                 Column(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clickable { onMemberClick(member) }
                                         .then(
-                                            if (index < members.size - 1) Modifier.drawBehind {
+                                            if (!isLast) Modifier.drawBehind {
                                                 drawLine(t.border, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
                                             } else Modifier
                                         )
@@ -192,6 +195,21 @@ fun HomeScreen(
                                         fontSize = 8.sp, fontWeight = FontWeight.Bold,
                                         color = if (seen == "Now") t.ok else t.textFade, fontFamily = SpaceMonoFamily
                                     )
+                                }
+                            }
+                            if (overflow > 0) {
+                                Column(
+                                    modifier = Modifier.weight(1f).padding(vertical = 14.dp, horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Box(
+                                        modifier = Modifier.size(40.dp).background(t.bgSub, RoundedCornerShape(13.dp)).border(2.5.dp, t.border, RoundedCornerShape(13.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("+$overflow", fontSize = 13.sp, fontWeight = FontWeight.Black, color = t.textMid, fontFamily = OutfitFamily)
+                                    }
+                                    Spacer(Modifier.height(6.dp))
+                                    Text("more", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.textFade, fontFamily = OutfitFamily)
                                 }
                             }
                         }

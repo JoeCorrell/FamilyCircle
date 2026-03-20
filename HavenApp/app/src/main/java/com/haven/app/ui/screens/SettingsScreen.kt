@@ -120,17 +120,19 @@ fun SettingsScreen(
                         .height(56.dp)
                         .background(Brush.linearGradient(listOf(t.accent, t.accentMid)))
                 ) {
-                    // Decorative circles
+                    // Decorative circles (anchored to end, screen-width-safe)
                     Box(
                         modifier = Modifier
                             .size(80.dp)
-                            .offset(x = 260.dp, y = (-20).dp)
+                            .align(Alignment.CenterEnd)
+                            .offset(x = 20.dp, y = (-16).dp)
                             .background(Color.White.copy(alpha = 0.06f), CircleShape)
                     )
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .offset(x = 230.dp, y = 10.dp)
+                            .align(Alignment.CenterEnd)
+                            .offset(x = (-30).dp, y = 8.dp)
                             .background(Color.White.copy(alpha = 0.04f), CircleShape)
                     )
                     Text(

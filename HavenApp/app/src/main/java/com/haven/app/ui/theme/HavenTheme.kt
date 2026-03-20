@@ -92,13 +92,83 @@ object HavenThemes {
         isDark = true
     )
 
-    val all = listOf(Sand, Charcoal, Ocean, Flora, Dusk)
+    val Slate = HavenColors(
+        name = "Slate", key = "slate",
+        bg = Color(0xFFF1F5F9), bgSub = Color(0xFFE2E8F0),
+        surface = Color(0xFFFFFFFF), surfaceAlt = Color(0xFFF8FAFC),
+        card = Color(0xFFFFFFFF), cardAlt = Color(0xFFF1F5F9),
+        accent = Color(0xFF4F46E5), accentSoft = Color(0xFFEEF2FF),
+        accentMid = Color(0xFF818CF8), accentBg = Color(0x104F46E5),
+        text = Color(0xFF1E293B), textMid = Color(0xFF475569), textFade = Color(0xFF94A3B8),
+        ok = Color(0xFF16A34A), warn = Color(0xFFD97706), danger = Color(0xFFDC2626),
+        border = Color(0x0F000000), borderStrong = Color(0x1A000000),
+        isDark = false
+    )
+
+    val Midnight = HavenColors(
+        name = "Midnight", key = "midnight",
+        bg = Color(0xFF08111E), bgSub = Color(0xFF0D1928),
+        surface = Color(0xFF121F30), surfaceAlt = Color(0xFF172538),
+        card = Color(0xFF121F30), cardAlt = Color(0xFF172538),
+        accent = Color(0xFF22D3EE), accentSoft = Color(0x0D22D3EE),
+        accentMid = Color(0xFF67E8F9), accentBg = Color(0x0A22D3EE),
+        text = Color(0xFFF0FEFF), textMid = Color(0xFF67E8F9), textFade = Color(0xFF1F4A5A),
+        ok = Color(0xFF4ADE80), warn = Color(0xFFFDE68A), danger = Color(0xFFFCA5A5),
+        border = Color(0x1222D3EE), borderStrong = Color(0x2022D3EE),
+        isDark = true
+    )
+
+    val Rose = HavenColors(
+        name = "Rose", key = "rose",
+        bg = Color(0xFFFFF5F7), bgSub = Color(0xFFFFE8ED),
+        surface = Color(0xFFFFFFFF), surfaceAlt = Color(0xFFFFF0F3),
+        card = Color(0xFFFFFFFF), cardAlt = Color(0xFFFFF5F7),
+        accent = Color(0xFFE11D48), accentSoft = Color(0xFFFFF1F2),
+        accentMid = Color(0xFFFB7185), accentBg = Color(0x0DE11D48),
+        text = Color(0xFF4C0519), textMid = Color(0xFF9F1239), textFade = Color(0xFFFDA4AF),
+        ok = Color(0xFF16A34A), warn = Color(0xFFD97706), danger = Color(0xFFB91C1C),
+        border = Color(0x0D000000), borderStrong = Color(0x17000000),
+        isDark = false
+    )
+
+    val Ember = HavenColors(
+        name = "Ember", key = "ember",
+        bg = Color(0xFF1A0A05), bgSub = Color(0xFF230E07),
+        surface = Color(0xFF2C120A), surfaceAlt = Color(0xFF35160C),
+        card = Color(0xFF2C120A), cardAlt = Color(0xFF35160C),
+        accent = Color(0xFFEF4444), accentSoft = Color(0x0DEF4444),
+        accentMid = Color(0xFFFCA5A5), accentBg = Color(0x0AEF4444),
+        text = Color(0xFFFFF5F5), textMid = Color(0xFFFCA5A5), textFade = Color(0xFF7F2020),
+        ok = Color(0xFF4ADE80), warn = Color(0xFFFBBF24), danger = Color(0xFFF87171),
+        border = Color(0x12EF4444), borderStrong = Color(0x22EF4444),
+        isDark = true
+    )
+
+    val Arctic = HavenColors(
+        name = "Arctic", key = "arctic",
+        bg = Color(0xFFF0FAFA), bgSub = Color(0xFFDFF4F4),
+        surface = Color(0xFFFFFFFF), surfaceAlt = Color(0xFFF5FBFB),
+        card = Color(0xFFFFFFFF), cardAlt = Color(0xFFF0FAFA),
+        accent = Color(0xFF0D9488), accentSoft = Color(0xFFF0FDFA),
+        accentMid = Color(0xFF2DD4BF), accentBg = Color(0x0D0D9488),
+        text = Color(0xFF134E4A), textMid = Color(0xFF2D7A74), textFade = Color(0xFF7BC8C4),
+        ok = Color(0xFF059669), warn = Color(0xFFD97706), danger = Color(0xFFDC2626),
+        border = Color(0x0D000000), borderStrong = Color(0x17000000),
+        isDark = false
+    )
+
+    val all = listOf(Sand, Charcoal, Ocean, Flora, Dusk, Slate, Midnight, Rose, Ember, Arctic)
 
     fun fromKey(key: String): HavenColors = when (key) {
         "charcoal" -> Charcoal
         "ocean" -> Ocean
         "flora" -> Flora
         "dusk" -> Dusk
+        "slate" -> Slate
+        "midnight" -> Midnight
+        "rose" -> Rose
+        "ember" -> Ember
+        "arctic" -> Arctic
         else -> Sand
     }
 }

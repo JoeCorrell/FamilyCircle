@@ -60,7 +60,6 @@ fun MapScreen(
     val context = LocalContext.current
     val members by viewModel.members.collectAsStateWithLifecycle()
     val places by viewModel.places.collectAsStateWithLifecycle()
-    val familyName by viewModel.familyName.collectAsStateWithLifecycle()
     val selectedMember by viewModel.selectedMember.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 

@@ -33,18 +33,9 @@ class HomeViewModel @Inject constructor(
     val drivesCount: StateFlow<Int> = MutableStateFlow(0)
     val unreadCount: StateFlow<Int> = MutableStateFlow(0)
 
-    val familyName: StateFlow<String> = apiManager.observeMembers()
-        .map {
-            val haven = apiManager.getHaven()
-            haven?.name ?: "My Family"
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "My Family")
-
-    val placesCount: StateFlow<Int> = places.map { it.size }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
-    val alertsCount: StateFlow<Int> = recentNotifications.map { it.size }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val familyName: StateFlow<String> = flow {
+        emit(apiManager.getHaven()?.name ?: "My Family")
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "My Family")
 
     val recentErrands: StateFlow<List<ErrandData>> = apiManager.observeErrands()
         .map { it.take(3) }
