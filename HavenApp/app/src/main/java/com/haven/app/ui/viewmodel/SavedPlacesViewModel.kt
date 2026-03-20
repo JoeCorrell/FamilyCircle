@@ -19,6 +19,13 @@ class SavedPlacesViewModel @Inject constructor(
     private val apiManager: HavenApiManager
 ) : ViewModel() {
 
+    val isAdmin: StateFlow<Boolean> = apiManager.observeMembers()
+        .map { members ->
+            val myUid = apiManager.userId
+            members.firstOrNull { it.userId == myUid }?.role == "ADMIN"
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val places: StateFlow<List<SavedPlace>> = apiManager.observePlaces()
         .map { list ->
             list.map { SavedPlace(it.id, it.name, it.address, it.latitude, it.longitude, it.radiusMeters, it.color, it.membersPresent) }

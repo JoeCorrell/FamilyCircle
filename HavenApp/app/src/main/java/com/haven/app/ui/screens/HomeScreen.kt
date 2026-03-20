@@ -54,6 +54,8 @@ fun HomeScreen(
     val familyName by viewModel.familyName.collectAsStateWithLifecycle()
     val myHavens by viewModel.myHavens.collectAsStateWithLifecycle()
     val recentErrands by viewModel.recentErrands.collectAsStateWithLifecycle()
+    val myRole by viewModel.myRole.collectAsStateWithLifecycle()
+    val isAdmin = myRole == "ADMIN"
     val label = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp)
 
     Column(
@@ -238,8 +240,10 @@ fun HomeScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text("PLACES", style = label, color = t.textFade)
-                        Text("+ ADD", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily,
-                            modifier = Modifier.clickable { onAddPlaceClick() })
+                        if (isAdmin) {
+                            Text("+ ADD", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily,
+                                modifier = Modifier.clickable { onAddPlaceClick() })
+                        }
                     }
                     Spacer(Modifier.height(10.dp))
                     if (places.isEmpty()) {

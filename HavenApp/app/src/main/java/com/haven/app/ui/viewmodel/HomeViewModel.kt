@@ -57,6 +57,7 @@ class HomeViewModel @Inject constructor(
     val activeHavenId: String? get() = apiManager.havenId
 
     init {
+        // Poll haven list
         viewModelScope.launch {
             while (true) {
                 try {
@@ -66,7 +67,35 @@ class HomeViewModel @Inject constructor(
                 delay(5000)
             }
         }
+        // Check SOS on launch and periodically
+        viewModelScope.launch {
+            while (true) {
+                try {
+                    val (active, senderName) = apiManager.checkSosActive()
+                    if (active && apiManager.sosReceived.value == null) {
+                        // Get sender's location
+                        val haven = apiManager.getHaven()
+                        val sender = haven?.members?.firstOrNull { it.name == senderName }
+                        apiManager.sosReceived.value = com.haven.app.data.api.HavenApiManager.SosAlert(
+                            senderName = senderName ?: "Family Member",
+                            latitude = sender?.latitude ?: 0.0,
+                            longitude = sender?.longitude ?: 0.0
+                        )
+                    } else if (!active && apiManager.sosReceived.value != null) {
+                        apiManager.sosReceived.value = null
+                    }
+                } catch (_: Exception) {}
+                delay(3000)
+            }
+        }
     }
+
+    val myRole: StateFlow<String> = apiManager.observeMembers()
+        .map { members ->
+            val myUid = apiManager.userId
+            members.firstOrNull { it.userId == myUid }?.role ?: "MEMBER"
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "MEMBER")
 
     val sosAlert: StateFlow<com.haven.app.data.api.HavenApiManager.SosAlert?> = apiManager.sosReceived
 

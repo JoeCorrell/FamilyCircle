@@ -32,6 +32,7 @@ fun SavedPlacesScreen(
 ) {
     val t = LocalHavenColors.current
     val places by viewModel.places.collectAsStateWithLifecycle()
+    val isAdmin by viewModel.isAdmin.collectAsStateWithLifecycle()
     var confirmDeleteId by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -66,14 +67,16 @@ fun SavedPlacesScreen(
                     fontFamily = OutfitFamily, letterSpacing = (-0.5).sp
                 )
             }
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(t.accentBg, RoundedCornerShape(10.dp))
-                    .clickable { onAddPlace() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.Add, "Add", Modifier.size(16.dp), tint = t.accent)
+            if (isAdmin) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(t.accentBg, RoundedCornerShape(10.dp))
+                        .clickable { onAddPlace() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Outlined.Add, "Add", Modifier.size(16.dp), tint = t.accent)
+                }
             }
         }
 
@@ -168,8 +171,8 @@ fun SavedPlacesScreen(
                                 )
                             }
 
-                            // Delete button / confirm
-                            if (isConfirming) {
+                            // Delete button / confirm (admin only)
+                            if (isAdmin && isConfirming) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Box(
                                         modifier = Modifier
@@ -193,7 +196,7 @@ fun SavedPlacesScreen(
                                         Text("Delete", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.danger, fontFamily = SpaceMonoFamily)
                                     }
                                 }
-                            } else {
+                            } else if (isAdmin) {
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
@@ -208,7 +211,8 @@ fun SavedPlacesScreen(
                     }
                 }
 
-                // Add more button
+                // Add more button (admin only)
+                if (isAdmin) {
                 Spacer(Modifier.height(4.dp))
                 HavenCard(
                     modifier = Modifier.fillMaxWidth(),
@@ -228,6 +232,7 @@ fun SavedPlacesScreen(
                             fontWeight = FontWeight.SemiBold, color = t.accent, fontFamily = OutfitFamily
                         )
                     }
+                }
                 }
             }
         }
