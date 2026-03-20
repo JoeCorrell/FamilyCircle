@@ -2,53 +2,32 @@ package com.haven.app.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.haven.app.data.remote.FirestoreManager
-import com.haven.app.data.remote.HavenSession
+import com.haven.app.data.api.HavenApiManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SavedPlace(
-    val id: String,
-    val name: String,
-    val address: String,
-    val lat: Double,
-    val lng: Double,
-    val radiusMeters: Float,
-    val color: Long
+    val id: String, val name: String, val address: String,
+    val latitude: Double, val longitude: Double,
+    val radiusMeters: Float, val color: Long, val membersPresent: Int
 )
 
 @HiltViewModel
 class SavedPlacesViewModel @Inject constructor(
-    private val firestoreManager: FirestoreManager,
-    private val havenSession: HavenSession
+    private val apiManager: HavenApiManager
 ) : ViewModel() {
 
-    val places: StateFlow<List<SavedPlace>> = havenSession.havenId
-        .filterNotNull()
-        .flatMapLatest { havenId -> firestoreManager.observePlaces(havenId) }
+    val places: StateFlow<List<SavedPlace>> = apiManager.observePlaces()
         .map { list ->
-            list.map { data ->
-                SavedPlace(
-                    id = data["id"] as? String ?: "",
-                    name = data["name"] as? String ?: "",
-                    address = data["address"] as? String ?: "",
-                    lat = (data["latitude"] as? Number)?.toDouble() ?: 0.0,
-                    lng = (data["longitude"] as? Number)?.toDouble() ?: 0.0,
-                    radiusMeters = (data["radiusMeters"] as? Number)?.toFloat() ?: 150f,
-                    color = (data["color"] as? Number)?.toLong() ?: 0xFF60A5FA
-                )
-            }
+            list.map { SavedPlace(it.id, it.name, it.address, it.latitude, it.longitude, it.radiusMeters, it.color, it.membersPresent) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun deletePlace(placeId: String) {
         viewModelScope.launch {
-            val havenId = havenSession.havenId.value ?: return@launch
-            try {
-                firestoreManager.removePlace(havenId, placeId)
-            } catch (_: Exception) {}
+            apiManager.deletePlace(placeId)
         }
     }
 }

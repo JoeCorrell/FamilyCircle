@@ -12,11 +12,8 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.haven.app.HavenApp
 import com.haven.app.R
-import com.haven.app.data.remote.FirebaseAuthManager
-import com.haven.app.data.remote.FirestoreManager
-import com.haven.app.data.remote.HavenSession
+import com.haven.app.data.api.HavenApiManager
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,36 +21,20 @@ import javax.inject.Singleton
 @Singleton
 class SosService @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val firestoreManager: FirestoreManager,
-    private val authManager: FirebaseAuthManager,
-    private val havenSession: HavenSession
+    private val apiManager: HavenApiManager
 ) {
     suspend fun activateSos() {
         val location = getCurrentLocation()
         vibrateDevice()
 
-        // Broadcast SOS to all members via Firestore
-        val havenId = havenSession.havenId.value ?: return
-        val userId = authManager.userId ?: return
+        val myMember = apiManager.getMyMember()
+        val senderName = myMember?.name ?: "Family Member"
 
-        firestoreManager.sendSosAlert(havenId, mapOf(
-            "senderUid" to userId,
-            "senderName" to try {
-                val members = firestoreManager.observeMembers(havenId).first()
-                (members.firstOrNull { it["uid"] == userId }?.get("name") as? String) ?: "Family Member"
-            } catch (_: Exception) { "Family Member" },
-            "latitude" to (location?.latitude ?: 0.0),
-            "longitude" to (location?.longitude ?: 0.0),
-            "timestamp" to System.currentTimeMillis(),
-            "message" to "SOS ALERT! I need help!"
-        ))
-
-        // Also add a notification entry
-        firestoreManager.addNotification(havenId, mapOf(
-            "title" to "SOS Alert Activated",
-            "color" to 0xFFDC2626,
-            "timestamp" to System.currentTimeMillis()
-        ))
+        apiManager.activateSos(
+            senderName = senderName,
+            lat = location?.latitude ?: 0.0,
+            lng = location?.longitude ?: 0.0
+        )
 
         showLocalNotification()
     }

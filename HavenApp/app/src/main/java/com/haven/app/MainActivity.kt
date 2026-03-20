@@ -33,7 +33,7 @@ import com.haven.app.ui.screens.SplashScreen
 import com.haven.app.ui.theme.HavenAppTheme
 import com.haven.app.ui.theme.HavenThemes
 import com.haven.app.ui.theme.LocalHavenColors
-import com.haven.app.ui.viewmodel.AuthState
+import com.haven.app.data.api.AuthState
 import com.haven.app.ui.viewmodel.AuthViewModel
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint

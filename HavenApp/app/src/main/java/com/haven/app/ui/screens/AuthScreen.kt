@@ -29,13 +29,13 @@ import com.haven.app.ui.theme.SpaceMonoFamily
 fun AuthScreen(
     isLoading: Boolean,
     error: String?,
-    onSignIn: (email: String, password: String) -> Unit,
-    onSignUp: (email: String, password: String) -> Unit,
+    onSignIn: (phone: String, password: String) -> Unit,
+    onSignUp: (phone: String, password: String) -> Unit,
     onClearError: () -> Unit
 ) {
     val t = LocalHavenColors.current
     val focusManager = LocalFocusManager.current
-    var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isSignUp by remember { mutableStateOf(false) }
     var confirmPassword by remember { mutableStateOf("") }
@@ -78,16 +78,17 @@ fun AuthScreen(
 
         Spacer(Modifier.height(36.dp))
 
-        // Email
+        // Phone Number
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it; onClearError() },
+            value = phone,
+            onValueChange = { phone = it; onClearError() },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Email") },
+            label = { Text("Phone Number") },
+            placeholder = { Text("+1 (555) 123-4567") },
             singleLine = true,
             shape = RoundedCornerShape(14.dp),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
+                keyboardType = KeyboardType.Phone,
                 imeAction = ImeAction.Next
             ),
             colors = authFieldColors(t)
@@ -110,7 +111,7 @@ fun AuthScreen(
             ),
             keyboardActions = if (!isSignUp) KeyboardActions(onDone = {
                 focusManager.clearFocus()
-                onSignIn(email, password)
+                onSignIn(phone, password)
             }) else KeyboardActions.Default,
             colors = authFieldColors(t)
         )
@@ -133,7 +134,7 @@ fun AuthScreen(
                     ),
                     keyboardActions = KeyboardActions(onDone = {
                         focusManager.clearFocus()
-                        if (password == confirmPassword) onSignUp(email, password)
+                        if (password == confirmPassword) onSignUp(phone, password)
                     }),
                     colors = authFieldColors(t)
                 )
@@ -162,12 +163,12 @@ fun AuthScreen(
                 .clickable(enabled = !isLoading) {
                     focusManager.clearFocus()
                     if (isSignUp) {
-                        if (password == confirmPassword && email.isNotBlank() && password.length >= 6) {
-                            onSignUp(email.trim(), password)
+                        if (password == confirmPassword && phone.isNotBlank() && password.length >= 6) {
+                            onSignUp(phone.trim(), password)
                         }
                     } else {
-                        if (email.isNotBlank() && password.isNotBlank()) {
-                            onSignIn(email.trim(), password)
+                        if (phone.isNotBlank() && password.isNotBlank()) {
+                            onSignIn(phone.trim(), password)
                         }
                     }
                 },

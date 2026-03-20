@@ -8,8 +8,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
-import com.haven.app.data.remote.FirestoreManager
-import com.haven.app.data.remote.HavenSession
+import com.haven.app.data.api.CreatePlaceRequest
+import com.haven.app.data.api.HavenApiManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
@@ -21,8 +21,7 @@ import kotlin.random.Random
 @HiltViewModel
 class AddPlaceViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val firestoreManager: FirestoreManager,
-    private val havenSession: HavenSession
+    private val apiManager: HavenApiManager
 ) : ViewModel() {
 
     private val placeColors = listOf(
@@ -37,17 +36,12 @@ class AddPlaceViewModel @Inject constructor(
         onComplete: () -> Unit = {}
     ) {
         viewModelScope.launch {
-            val havenId = havenSession.havenId.value ?: return@launch
             try {
-                firestoreManager.addPlace(havenId, mapOf(
-                    "name" to name,
-                    "address" to address,
-                    "latitude" to lat,
-                    "longitude" to lng,
-                    "radiusMeters" to radiusMeters,
-                    "color" to placeColors[Random.nextInt(placeColors.size)],
-                    "membersPresent" to 0,
-                    "createdAt" to System.currentTimeMillis()
+                apiManager.createPlace(CreatePlaceRequest(
+                    name = name, address = address,
+                    latitude = lat, longitude = lng,
+                    radiusMeters = radiusMeters,
+                    color = placeColors[Random.nextInt(placeColors.size)]
                 ))
             } catch (_: Exception) {}
             onComplete()
@@ -56,8 +50,6 @@ class AddPlaceViewModel @Inject constructor(
 
     fun savePlace(name: String, address: String, radiusMeters: Float) {
         viewModelScope.launch {
-            val havenId = havenSession.havenId.value ?: return@launch
-
             val coords = try {
                 val geocoder = Geocoder(context, Locale.getDefault())
                 @Suppress("DEPRECATION")
@@ -68,16 +60,12 @@ class AddPlaceViewModel @Inject constructor(
             val (lat, lng) = coords ?: getCurrentLocation() ?: (0.0 to 0.0)
 
             try {
-            firestoreManager.addPlace(havenId, mapOf(
-                "name" to name,
-                "address" to address,
-                "latitude" to lat,
-                "longitude" to lng,
-                "radiusMeters" to radiusMeters,
-                "color" to placeColors[Random.nextInt(placeColors.size)],
-                "membersPresent" to 0,
-                "createdAt" to System.currentTimeMillis()
-            ))
+                apiManager.createPlace(CreatePlaceRequest(
+                    name = name, address = address,
+                    latitude = lat, longitude = lng,
+                    radiusMeters = radiusMeters,
+                    color = placeColors[Random.nextInt(placeColors.size)]
+                ))
             } catch (_: Exception) {}
         }
     }

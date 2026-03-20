@@ -97,6 +97,12 @@ dependencies {
     // Gson
     implementation(libs.gson)
 
+    // Retrofit + OkHttp (Haven Server API)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+
     // Coil (image loading)
     implementation(libs.coil.compose)
 

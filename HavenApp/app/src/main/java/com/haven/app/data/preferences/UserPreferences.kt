@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -64,5 +65,17 @@ class UserPreferences @Inject constructor(
 
     suspend fun setStringPreference(key: Preferences.Key<String>, value: String) {
         context.dataStore.edit { it[key] = value }
+    }
+
+    suspend fun getString(key: Preferences.Key<String>): String? {
+        return context.dataStore.data.map { it[key] }.first()
+    }
+
+    suspend fun setString(key: Preferences.Key<String>, value: String) {
+        context.dataStore.edit { it[key] = value }
+    }
+
+    fun getPreference(key: Preferences.Key<Boolean>): Flow<Boolean> {
+        return context.dataStore.data.map { it[key] ?: true }
     }
 }

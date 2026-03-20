@@ -14,13 +14,11 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.haven.app.HavenApp
 import com.haven.app.R
+import com.haven.app.data.api.HavenApiManager
+import com.haven.app.data.api.LocationUpdate
 import com.haven.app.data.model.MemberStatus
-import com.haven.app.data.remote.FirebaseAuthManager
-import com.haven.app.data.remote.FirestoreManager
-import com.haven.app.data.remote.HavenSession
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
@@ -28,9 +26,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class LocationService : Service() {
 
-    @Inject lateinit var firestoreManager: FirestoreManager
-    @Inject lateinit var authManager: FirebaseAuthManager
-    @Inject lateinit var havenSession: HavenSession
+    @Inject lateinit var apiManager: HavenApiManager
     @Inject lateinit var notificationHelper: NotificationHelper
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -88,10 +84,8 @@ class LocationService : Service() {
             override fun onLocationResult(result: LocationResult) {
                 result.lastLocation?.let { location ->
                     serviceScope.launch {
-                        val userId = authManager.userId ?: return@launch
-                        val havenId = havenSession.havenId.value ?: return@launch
+                        if (!apiManager.isSignedIn) return@launch
 
-                        // Only re-geocode if moved >100m from last geocode
                         val movedFar = Math.abs(location.latitude - lastGeocodeLat) > 0.001 ||
                             Math.abs(location.longitude - lastGeocodeLng) > 0.001
                         val address = if (movedFar) {
@@ -120,56 +114,34 @@ class LocationService : Service() {
                         val battery = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).coerceIn(0, 100)
 
                         try {
-                            // Log location history when address changes
-                            if (movedFar && address != "Unknown") {
-                                firestoreManager.addLocationHistory(havenId, userId, mapOf(
-                                    "address" to address,
-                                    "latitude" to location.latitude,
-                                    "longitude" to location.longitude,
-                                    "speed" to speedMph,
-                                    "status" to status.name,
-                                    "timestamp" to System.currentTimeMillis()
-                                ))
-                            }
-
-                            firestoreManager.updateMemberFields(havenId, userId, mapOf(
-                                "latitude" to location.latitude,
-                                "longitude" to location.longitude,
-                                "currentAddress" to address,
-                                "lastSeenTimestamp" to System.currentTimeMillis(),
-                                "speed" to speedMph,
-                                "status" to status.name,
-                                "isOnline" to true,
-                                "batteryLevel" to battery
+                            apiManager.updateLocation(LocationUpdate(
+                                latitude = location.latitude,
+                                longitude = location.longitude,
+                                speed = speedMph.toDouble(),
+                                currentAddress = address,
+                                status = status.name,
+                                batteryLevel = battery
                             ))
 
-                            // Get member name for notifications
-                            val memberName = try {
-                                val members = firestoreManager.observeMembers(havenId).first()
-                                (members.firstOrNull { it["uid"] == userId }?.get("name") as? String) ?: "You"
-                            } catch (_: Exception) { "You" }
-
+                            val memberName = apiManager.getMyMember()?.name ?: "You"
                             val now = System.currentTimeMillis()
 
-                            // Battery low alert (once every 30 min)
                             if (battery <= 15 && now - lastBatteryAlertTime > 30 * 60 * 1000) {
                                 lastBatteryAlertTime = now
                                 notificationHelper.notifyBatteryLow(memberName, battery)
                             }
 
-                            // Speed alert (once every 10 min, over 80mph)
                             if (speedMph > 80 && now - lastSpeedAlertTime > 10 * 60 * 1000) {
                                 lastSpeedAlertTime = now
                                 notificationHelper.notifySpeedAlert(memberName, speedMph.toInt())
                             }
 
-                            // Drive started notification
                             if (status == MemberStatus.DRIVING && !wasDriving) {
                                 notificationHelper.notifyDriveStarted(memberName)
                             }
                             wasDriving = status == MemberStatus.DRIVING
 
-                        } catch (_: Exception) { /* offline — Firestore will sync later */ }
+                        } catch (_: Exception) {}
                     }
                 }
             }
@@ -189,22 +161,20 @@ class LocationService : Service() {
 
         fusedLocationClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
 
-        // Force an immediate update so data shows right away
         serviceScope.launch {
             try {
                 val location = fusedLocationClient.lastLocation.await() ?: return@launch
-                val userId = authManager.userId ?: return@launch
-                val havenId = havenSession.havenId.value ?: return@launch
+                if (!apiManager.isSignedIn) return@launch
                 val bm = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
                 val battery = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).coerceIn(0, 100)
                 val speedMph = location.speed * 2.23694f
-                firestoreManager.updateMemberFields(havenId, userId, mapOf(
-                    "latitude" to location.latitude,
-                    "longitude" to location.longitude,
-                    "lastSeenTimestamp" to System.currentTimeMillis(),
-                    "speed" to speedMph,
-                    "isOnline" to true,
-                    "batteryLevel" to battery
+                apiManager.updateLocation(LocationUpdate(
+                    latitude = location.latitude,
+                    longitude = location.longitude,
+                    speed = speedMph.toDouble(),
+                    currentAddress = "",
+                    status = "UNKNOWN",
+                    batteryLevel = battery
                 ))
             } catch (_: Exception) {}
         }
@@ -217,12 +187,9 @@ class LocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         stopLocationUpdates()
-        // Mark member as offline before cancelling scope
-        kotlinx.coroutines.runBlocking {
+        runBlocking {
             try {
-                val userId = authManager.userId ?: return@runBlocking
-                val havenId = havenSession.havenId.value ?: return@runBlocking
-                firestoreManager.updateMemberFields(havenId, userId, mapOf("isOnline" to false))
+                apiManager.updateMyMember(mapOf("isOnline" to false))
             } catch (_: Exception) {}
         }
         serviceScope.cancel()
