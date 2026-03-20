@@ -1,7 +1,5 @@
 package com.haven.app.ui.components
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -47,14 +45,11 @@ fun HavenTopBar(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        AnimatedVisibility(
-            visible = showBack,
-            modifier = Modifier.align(Alignment.CenterStart),
-            enter = fadeIn() + scaleIn(initialScale = 0.8f, animationSpec = spring()),
-            exit = fadeOut() + scaleOut(targetScale = 0.8f, animationSpec = spring())
-        ) {
+        // Back button — left side
+        if (showBack) {
             Box(
                 modifier = Modifier
+                    .align(Alignment.CenterStart)
                     .size(36.dp)
                     .background(t.card, RoundedCornerShape(12.dp))
                     .border(1.dp, t.border, RoundedCornerShape(12.dp))
@@ -65,6 +60,7 @@ fun HavenTopBar(
             }
         }
 
+        // Haven title — always centered
         Text(
             "Haven",
             fontSize = 22.sp,
@@ -74,6 +70,7 @@ fun HavenTopBar(
             letterSpacing = (-0.5).sp
         )
 
+        // Profile button — right side
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
