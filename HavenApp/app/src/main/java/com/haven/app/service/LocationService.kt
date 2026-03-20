@@ -236,10 +236,15 @@ class LocationService : Service() {
                                 latitude = lat, longitude = lng
                             )
 
-                            // Launch app via notification
-                            val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
-                            val pendingIntent = android.app.PendingIntent.getActivity(
-                                this@LocationService, 0, launchIntent,
+                            // Launch SosAlertActivity (shows over lock screen like incoming call)
+                            val sosIntent = android.content.Intent(this@LocationService, com.haven.app.SosAlertActivity::class.java).apply {
+                                putExtra("senderName", sosBy ?: "Family Member")
+                                putExtra("latitude", lat)
+                                putExtra("longitude", lng)
+                                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            }
+                            val fullScreenPendingIntent = android.app.PendingIntent.getActivity(
+                                this@LocationService, 0, sosIntent,
                                 android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
                             )
 
@@ -251,11 +256,16 @@ class LocationService : Service() {
                                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                                 .setAutoCancel(false)
                                 .setOngoing(true)
-                                .setContentIntent(pendingIntent)
-                                .setFullScreenIntent(pendingIntent, true)
+                                .setContentIntent(fullScreenPendingIntent)
+                                .setFullScreenIntent(fullScreenPendingIntent, true)
                                 .setSound(android.net.Uri.parse("android.resource://${packageName}/${R.raw.notification}"))
                                 .setVibrate(longArrayOf(0, 500, 200, 500, 200, 500, 200, 500))
                                 .build()
+
+                            // Also try to launch the activity directly
+                            try {
+                                startActivity(sosIntent)
+                            } catch (_: Exception) {}
 
                             if (ContextCompat.checkSelfPermission(this@LocationService, Manifest.permission.POST_NOTIFICATIONS)
                                 == PackageManager.PERMISSION_GRANTED) {
