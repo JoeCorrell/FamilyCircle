@@ -18,15 +18,18 @@ data class HavenData(
 )
 
 data class MemberData(
-    val id: String, val userId: String, val havenId: String,
-    val name: String, val initials: String, val color: Long,
-    val phoneNumber: String, val batteryLevel: Int,
-    val latitude: Double, val longitude: Double,
-    val currentAddress: String, val speed: Double,
-    val status: String, val lastSeenTimestamp: Long,
-    val isOnline: Boolean, val photoUrl: String,
-    val avatarIcon: String, val ringPosition: Double, val angle: Double
-)
+    val id: String = "", val userId: String = "", val havenId: String = "",
+    val name: String = "", val initials: String = "", val color: Double = 0.0,
+    val phoneNumber: String = "", val batteryLevel: Int = 100,
+    val latitude: Double = 0.0, val longitude: Double = 0.0,
+    val currentAddress: String = "", val speed: Double = 0.0,
+    val status: String = "UNKNOWN", val lastSeenTimestamp: Double = 0.0,
+    val isOnline: Boolean = false, val photoUrl: String = "",
+    val avatarIcon: String = "", val ringPosition: Double = 0.5, val angle: Double = 0.0
+) {
+    fun colorAsLong(): Long = color.toLong()
+    fun lastSeenAsLong(): Long = lastSeenTimestamp.toLong()
+}
 
 data class LocationUpdate(
     val latitude: Double, val longitude: Double,

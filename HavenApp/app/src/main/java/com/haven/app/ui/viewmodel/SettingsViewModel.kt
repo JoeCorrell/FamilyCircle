@@ -38,7 +38,7 @@ class SettingsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     val userColor: StateFlow<Long> = myMemberFlow
-        .map { it?.color ?: 0xFFE879A0 }
+        .map { it?.colorAsLong() ?: 0xFFE879A0 }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0xFFE879A0)
 
     val familyName: StateFlow<String> = flow {

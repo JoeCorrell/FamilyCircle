@@ -29,7 +29,7 @@ class ChatViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, "You")
 
     val memberColors: StateFlow<Map<String, Long>> = membersFlow
-        .map { members -> members.associate { it.name to it.color } }
+        .map { members -> members.associate { it.name to it.colorAsLong() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     val messages: StateFlow<List<Message>> = apiManager.observeMessages()
