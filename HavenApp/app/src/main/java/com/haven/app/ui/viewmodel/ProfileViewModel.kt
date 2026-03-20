@@ -46,11 +46,6 @@ class ProfileViewModel @Inject constructor(
         .map { it?.phoneNumber ?: "" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
-    val email: StateFlow<String> = flow {
-        val me = apiManager.api.me()
-        emit(me.body()?.email ?: me.body()?.phone ?: "")
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
-
     val familyName: StateFlow<String> = flow {
         val haven = apiManager.getHaven()
         emit(haven?.name ?: "My Family")
@@ -124,15 +119,6 @@ class ProfileViewModel @Inject constructor(
     fun updateAvatarIcon(iconName: String) {
         viewModelScope.launch {
             apiManager.updateMyMember(mapOf("avatarIcon" to iconName))
-        }
-    }
-
-    fun updateEmail(email: String) {
-        viewModelScope.launch {
-            try { apiManager.api.me() } catch (_: Exception) {} // just to verify auth
-            try {
-                val resp = apiManager.api.updateEmail(mapOf("email" to email))
-            } catch (_: Exception) {}
         }
     }
 

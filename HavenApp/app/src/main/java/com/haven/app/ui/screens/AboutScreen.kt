@@ -97,7 +97,7 @@ fun AboutScreen(onBack: () -> Unit) {
                             .padding(horizontal = 14.dp, vertical = 5.dp)
                     ) {
                         Text(
-                            "v3.0", fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                            "v1.0", fontSize = 11.sp, fontWeight = FontWeight.Bold,
                             color = t.accent, fontFamily = SpaceMonoFamily
                         )
                     }
@@ -106,7 +106,7 @@ fun AboutScreen(onBack: () -> Unit) {
 
             // Info rows
             listOf(
-                "Version" to "3.0.0 (Build 482)",
+                "Version" to "1.0.0",
                 "Platform" to "iOS & Android",
                 "Release" to "March 2026"
             ).forEach { (label, value) ->

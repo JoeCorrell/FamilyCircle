@@ -48,28 +48,6 @@ class AddPlaceViewModel @Inject constructor(
         }
     }
 
-    fun savePlace(name: String, address: String, radiusMeters: Float) {
-        viewModelScope.launch {
-            val coords = try {
-                val geocoder = Geocoder(context, Locale.getDefault())
-                @Suppress("DEPRECATION")
-                val results = geocoder.getFromLocationName(address, 1)
-                results?.firstOrNull()?.let { it.latitude to it.longitude }
-            } catch (_: Exception) { null }
-
-            val (lat, lng) = coords ?: getCurrentLocation() ?: (0.0 to 0.0)
-
-            try {
-                apiManager.createPlace(CreatePlaceRequest(
-                    name = name, address = address,
-                    latitude = lat, longitude = lng,
-                    radiusMeters = radiusMeters,
-                    color = placeColors[Random.nextInt(placeColors.size)]
-                ))
-            } catch (_: Exception) {}
-        }
-    }
-
     private suspend fun getCurrentLocation(): Pair<Double, Double>? {
         return try {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)

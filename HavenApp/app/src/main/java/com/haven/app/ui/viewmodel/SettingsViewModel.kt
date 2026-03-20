@@ -61,7 +61,4 @@ class SettingsViewModel @Inject constructor(
         .map { HavenThemes.fromKey(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HavenThemes.Sand)
 
-    fun signOut() {
-        viewModelScope.launch { apiManager.signOut() }
-    }
 }

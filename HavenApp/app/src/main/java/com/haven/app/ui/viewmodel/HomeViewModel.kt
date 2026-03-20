@@ -30,7 +30,6 @@ class HomeViewModel @Inject constructor(
         .map { list -> list.take(3).map { NotifData(it.title, it.color, it.timestamp) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val familyScore: StateFlow<Int> = MutableStateFlow(100)
     val drivesCount: StateFlow<Int> = MutableStateFlow(0)
     val unreadCount: StateFlow<Int> = MutableStateFlow(0)
 

@@ -12,7 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.haven.app.data.api.HavenApiManager
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.MainScope
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.compose.animation.core.*
@@ -93,7 +93,7 @@ class SosAlertActivity : ComponentActivity() {
                 onDismiss = {
                     vibrator?.cancel()
                     apiManager.dismissSosAlert()
-                    MainScope().launch { apiManager.clearSos() }
+                    lifecycleScope.launch { apiManager.clearSos() }
                     finish()
                 }
             )

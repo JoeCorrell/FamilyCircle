@@ -14,8 +14,6 @@ class SafetyViewModel @Inject constructor(
 ) : ViewModel() {
 
     val drives: StateFlow<List<Drive>> = MutableStateFlow(emptyList())
-    val familyScore: StateFlow<Int> = MutableStateFlow(100)
-    val weeklyScores: StateFlow<List<Int>> = MutableStateFlow(listOf(85, 90, 88, 92, 87, 94, 91))
 
     val memberCount: StateFlow<Int> = apiManager.observeMembers()
         .map { it.size }

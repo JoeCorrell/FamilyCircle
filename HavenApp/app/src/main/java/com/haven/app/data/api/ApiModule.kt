@@ -81,25 +81,40 @@ class TokenStore @javax.inject.Inject constructor(
         val HAVEN_ID_KEY = stringPreferencesKey("haven_id")
     }
 
-    fun getToken(): String? = runBlocking {
-        try { userPreferences.getString(TOKEN_KEY) } catch (_: Exception) { null }
+    // In-memory cache — avoids runBlocking on main thread
+    @Volatile private var cachedToken: String? = null
+    @Volatile private var cachedUserId: String? = null
+    @Volatile private var cachedHavenId: String? = null
+    @Volatile private var initialized = false
+
+    private fun ensureInitialized() {
+        if (!initialized) {
+            synchronized(this) {
+                if (!initialized) {
+                    runBlocking {
+                        cachedToken = try { userPreferences.getString(TOKEN_KEY) } catch (_: Exception) { null }
+                        cachedUserId = try { userPreferences.getString(USER_ID_KEY) } catch (_: Exception) { null }
+                        cachedHavenId = try { userPreferences.getString(HAVEN_ID_KEY) } catch (_: Exception) { null }
+                    }
+                    initialized = true
+                }
+            }
+        }
     }
 
-    fun getUserId(): String? = runBlocking {
-        try { userPreferences.getString(USER_ID_KEY) } catch (_: Exception) { null }
-    }
-
-    fun getHavenId(): String? = runBlocking {
-        try { userPreferences.getString(HAVEN_ID_KEY) } catch (_: Exception) { null }
-    }
+    fun getToken(): String? { ensureInitialized(); return cachedToken?.ifEmpty { null } }
+    fun getUserId(): String? { ensureInitialized(); return cachedUserId?.ifEmpty { null } }
+    fun getHavenId(): String? { ensureInitialized(); return cachedHavenId?.ifEmpty { null } }
 
     suspend fun saveAuth(token: String, userId: String, havenId: String?) {
+        cachedToken = token; cachedUserId = userId; if (havenId != null) cachedHavenId = havenId
         userPreferences.setString(TOKEN_KEY, token)
         userPreferences.setString(USER_ID_KEY, userId)
         if (havenId != null) userPreferences.setString(HAVEN_ID_KEY, havenId)
     }
 
     suspend fun saveHavenId(havenId: String) {
+        cachedHavenId = havenId
         userPreferences.setString(HAVEN_ID_KEY, havenId)
     }
 

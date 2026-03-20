@@ -40,7 +40,7 @@ fun SettingsSubScreen(
             "Battery Alerts" to UserPreferences.BATTERY_ALERTS,
             "Speed Alerts" to UserPreferences.SPEED_ALERTS,
             "Quiet Hours" to UserPreferences.QUIET_HOURS,
-            "Share with Circle" to UserPreferences.LOCATION_SHARING,
+            "Share with Haven" to UserPreferences.LOCATION_SHARING,
             "Precision" to UserPreferences.HIGH_PRECISION,
             "Background Updates" to UserPreferences.BACKGROUND_UPDATES,
             "Wi-Fi Only" to UserPreferences.WIFI_ONLY,

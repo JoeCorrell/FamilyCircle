@@ -341,7 +341,7 @@ fun SettingsScreen(
             )
             SettingsRow(
                 icon = Icons.Outlined.Info, title = "About Haven",
-                desc = "v3.0 \u2022 Terms \u2022 Privacy",
+                desc = "v1.0 \u2022 Terms \u2022 Privacy",
                 isLast = true, onClick = onAboutClick, t = t
             )
 
@@ -375,7 +375,7 @@ fun SettingsScreen(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "v3.0 \u2022 FAMILY SAFETY REIMAGINED",
+                    "v1.0 \u2022 FAMILY SAFETY REIMAGINED",
                     fontSize = 9.sp, color = t.textFade,
                     fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp
                 )

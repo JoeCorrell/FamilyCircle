@@ -47,6 +47,7 @@ class LocationService : Service() {
     private var lastNotifTimestamp = 0L
     private var lastMessageCount = -1
     private var lastSosState = false
+    private var pollingStarted = false
 
     companion object {
         const val NOTIFICATION_ID = 1001
@@ -73,8 +74,11 @@ class LocationService : Service() {
             else -> {
                 startForegroundNotification()
                 startLocationUpdates()
-                startNotificationPolling()
-                startSosPolling()
+                if (!pollingStarted) {
+                    pollingStarted = true
+                    startNotificationPolling()
+                    startSosPolling()
+                }
             }
         }
         return START_STICKY
@@ -369,10 +373,9 @@ class LocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         stopLocationUpdates()
-        runBlocking {
-            try {
-                apiManager.updateMyMember(mapOf("isOnline" to false))
-            } catch (_: Exception) {}
+        // Mark offline in background — don't block main thread
+        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try { apiManager.updateMyMember(mapOf("isOnline" to false)) } catch (_: Exception) {}
         }
         serviceScope.cancel()
     }
