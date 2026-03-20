@@ -67,27 +67,7 @@ class HomeViewModel @Inject constructor(
                 delay(5000)
             }
         }
-        // Check SOS on launch and periodically
-        viewModelScope.launch {
-            while (true) {
-                try {
-                    val (active, senderName) = apiManager.checkSosActive()
-                    if (active && apiManager.sosReceived.value == null && !apiManager._sosCleared) {
-                        // Get sender's location
-                        val haven = apiManager.getHaven()
-                        val sender = haven?.members?.firstOrNull { it.name == senderName }
-                        apiManager.sosReceived.value = com.haven.app.data.api.HavenApiManager.SosAlert(
-                            senderName = senderName ?: "Family Member",
-                            latitude = sender?.latitude ?: 0.0,
-                            longitude = sender?.longitude ?: 0.0
-                        )
-                    } else if (!active && apiManager.sosReceived.value != null) {
-                        apiManager.sosReceived.value = null
-                    }
-                } catch (_: Exception) {}
-                delay(3000)
-            }
-        }
+        // SOS state is managed by LocationService polling — HomeViewModel just observes
     }
 
     val myRole: StateFlow<String> = apiManager.observeMembers()

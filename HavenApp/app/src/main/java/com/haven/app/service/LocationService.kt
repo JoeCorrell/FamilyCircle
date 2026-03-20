@@ -47,7 +47,6 @@ class LocationService : Service() {
     private var lastNotifTimestamp = 0L
     private var lastMessageCount = -1
     private var lastSosState = false
-    private var sosDismissed = false
 
     companion object {
         const val NOTIFICATION_ID = 1001
@@ -207,84 +206,72 @@ class LocationService : Service() {
         }
     }
 
+    // Once we alert for an SOS, don't alert again until it's cleared and a new one happens
+    private var hasAlertedForCurrentSos = false
+
     private fun startSosPolling() {
         serviceScope.launch {
             while (true) {
                 try {
                     if (apiManager.isSignedIn) {
-                        if (apiManager._sosCleared) {
-                            apiManager._sosCleared = false
-                            lastSosState = false
-                            NotificationManagerCompat.from(this@LocationService).cancel(SOS_NOTIFICATION_ID)
-                        }
-                        val haven = try {
-                            val hid = apiManager.havenId ?: return@launch
-                            apiManager.api.getHaven(hid).body()
-                        } catch (_: Exception) { null }
+                        val hid = apiManager.havenId
+                        if (hid != null) {
+                            val haven = try { apiManager.api.getHaven(hid).body() } catch (_: Exception) { null }
+                            val sosActive = haven?.activeSos == true
+                            val sosBy = haven?.lastSosBy
+                            if (sosActive && !hasAlertedForCurrentSos) {
+                                // New SOS — alert once
+                                hasAlertedForCurrentSos = true
 
-                        val sosActive = haven?.activeSos == true
-                        val sosBy = haven?.lastSosBy
+                                val sender = haven?.members?.firstOrNull { it.name == sosBy }
+                                val lat = sender?.latitude ?: 0.0
+                                val lng = sender?.longitude ?: 0.0
 
-                        if (sosActive && !lastSosState && !sosDismissed) {
-                            // Find the SOS sender's coordinates
-                            val sender = haven?.members?.firstOrNull { it.name == sosBy }
-                            val lat = sender?.latitude ?: 0.0
-                            val lng = sender?.longitude ?: 0.0
+                                // Build intent for SosAlertActivity
+                                val sosIntent = android.content.Intent(this@LocationService, com.haven.app.SosAlertActivity::class.java).apply {
+                                    putExtra("senderName", sosBy ?: "Family Member")
+                                    putExtra("latitude", lat)
+                                    putExtra("longitude", lng)
+                                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                }
+                                val pendingIntent = android.app.PendingIntent.getActivity(
+                                    this@LocationService, 0, sosIntent,
+                                    android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+                                )
 
-                            // Set the in-app SOS alert state
-                            apiManager.sosReceived.value = com.haven.app.data.api.HavenApiManager.SosAlert(
-                                senderName = sosBy ?: "Family Member",
-                                latitude = lat, longitude = lng
-                            )
+                                // Notification with full-screen intent
+                                val sosNotif = NotificationCompat.Builder(this@LocationService, com.haven.app.HavenApp.SOS_CHANNEL_ID)
+                                    .setSmallIcon(R.drawable.ic_sos)
+                                    .setContentTitle("SOS ALERT")
+                                    .setContentText("${sosBy ?: "A family member"} needs help!")
+                                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                                    .setAutoCancel(false)
+                                    .setOngoing(true)
+                                    .setContentIntent(pendingIntent)
+                                    .setFullScreenIntent(pendingIntent, true)
+                                    .setSound(android.net.Uri.parse("android.resource://${packageName}/${R.raw.notification}"))
+                                    .setVibrate(longArrayOf(0, 800, 400, 800, 400, 800))
+                                    .build()
 
-                            // Launch SosAlertActivity (shows over lock screen like incoming call)
-                            val sosIntent = android.content.Intent(this@LocationService, com.haven.app.SosAlertActivity::class.java).apply {
-                                putExtra("senderName", sosBy ?: "Family Member")
-                                putExtra("latitude", lat)
-                                putExtra("longitude", lng)
-                                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                if (ContextCompat.checkSelfPermission(this@LocationService, Manifest.permission.POST_NOTIFICATIONS)
+                                    == PackageManager.PERMISSION_GRANTED) {
+                                    NotificationManagerCompat.from(this@LocationService).notify(SOS_NOTIFICATION_ID, sosNotif)
+                                }
+
+                                // Set in-app overlay state
+                                apiManager.sosReceived.value = com.haven.app.data.api.HavenApiManager.SosAlert(
+                                    senderName = sosBy ?: "Family Member",
+                                    latitude = lat, longitude = lng
+                                )
+
+                            } else if (!sosActive && lastSosState) {
+                                // SOS cleared — reset so next SOS triggers again
+                                hasAlertedForCurrentSos = false
+                                NotificationManagerCompat.from(this@LocationService).cancel(SOS_NOTIFICATION_ID)
+                                apiManager.sosReceived.value = null
                             }
-                            val fullScreenPendingIntent = android.app.PendingIntent.getActivity(
-                                this@LocationService, 0, sosIntent,
-                                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-                            )
-
-                            val sosNotif = NotificationCompat.Builder(this@LocationService, com.haven.app.HavenApp.SOS_CHANNEL_ID)
-                                .setSmallIcon(R.drawable.ic_sos)
-                                .setContentTitle("SOS ALERT")
-                                .setContentText("${sosBy ?: "A family member"} activated SOS! They need help!")
-                                .setPriority(NotificationCompat.PRIORITY_MAX)
-                                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                                .setAutoCancel(false)
-                                .setOngoing(true)
-                                .setContentIntent(fullScreenPendingIntent)
-                                .setFullScreenIntent(fullScreenPendingIntent, true)
-                                .setSound(android.net.Uri.parse("android.resource://${packageName}/${R.raw.notification}"))
-                                .setVibrate(longArrayOf(0, 500, 200, 500, 200, 500, 200, 500))
-                                .build()
-
-                            // Also try to launch the activity directly
-                            try {
-                                startActivity(sosIntent)
-                            } catch (_: Exception) {}
-
-                            if (ContextCompat.checkSelfPermission(this@LocationService, Manifest.permission.POST_NOTIFICATIONS)
-                                == PackageManager.PERMISSION_GRANTED) {
-                                NotificationManagerCompat.from(this@LocationService).notify(SOS_NOTIFICATION_ID, sosNotif)
-                            }
-
-                            val vibrator = getSystemService(Vibrator::class.java)
-                            vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 500, 200, 500, 200, 500, 200, 500), -1))
-                        } else if (!sosActive && lastSosState) {
-                            NotificationManagerCompat.from(this@LocationService).cancel(SOS_NOTIFICATION_ID)
-                            apiManager.sosReceived.value = null
-                            sosDismissed = false // Reset for next SOS
-                        }
-                        lastSosState = sosActive
-
-                        // Check if user dismissed the SOS overlay
-                        if (sosActive && apiManager.sosReceived.value == null && lastSosState) {
-                            sosDismissed = true
+                            lastSosState = sosActive
                         }
                     }
                 } catch (_: Exception) {}
