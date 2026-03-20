@@ -90,7 +90,12 @@ class HavenApiManager @Inject constructor(
 
     suspend fun switchHaven(havenId: String) {
         tokenStore.saveHavenId(havenId)
+        // Reset SOS state so old alerts don't carry over
+        _sosCleared = true
     }
+
+    @Volatile
+    var _sosCleared = false
 
     // ── Haven ──
 

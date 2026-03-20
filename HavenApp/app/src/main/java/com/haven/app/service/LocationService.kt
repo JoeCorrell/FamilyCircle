@@ -211,6 +211,11 @@ class LocationService : Service() {
             while (true) {
                 try {
                     if (apiManager.isSignedIn) {
+                        if (apiManager._sosCleared) {
+                            apiManager._sosCleared = false
+                            lastSosState = false
+                            NotificationManagerCompat.from(this@LocationService).cancel(SOS_NOTIFICATION_ID)
+                        }
                         val (sosActive, sosBy) = apiManager.checkSosActive()
                         if (sosActive && !lastSosState) {
                             val sosNotif = NotificationCompat.Builder(this@LocationService, com.haven.app.HavenApp.SOS_CHANNEL_ID)
