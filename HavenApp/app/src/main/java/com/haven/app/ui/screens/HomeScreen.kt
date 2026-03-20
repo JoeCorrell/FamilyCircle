@@ -52,6 +52,7 @@ fun HomeScreen(
     val drivesCount by viewModel.drivesCount.collectAsStateWithLifecycle()
     val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle()
     val familyName by viewModel.familyName.collectAsStateWithLifecycle()
+    val myHavens by viewModel.myHavens.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -105,7 +106,7 @@ fun HomeScreen(
             }
         }
 
-        // Circle switcher
+        // Haven switcher
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -113,21 +114,43 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .background(t.accent.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-                    .border(1.5.dp, t.accent, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            val activeId = viewModel.activeHavenId
+            if (myHavens.isEmpty()) {
+                // Fallback single haven
+                Box(
+                    modifier = Modifier
+                        .background(t.accent.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                        .border(1.5.dp, t.accent, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
                 ) {
-                    Icon(Icons.Outlined.Home, "Circle", Modifier.size(14.dp), tint = t.accent)
-                    Text(
-                        familyName, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                        color = t.accent, fontFamily = SpaceMonoFamily
-                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.Home, "Haven", Modifier.size(14.dp), tint = t.accent)
+                        Text(familyName, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily)
+                    }
+                }
+            } else {
+                myHavens.forEach { haven ->
+                    val isActive = haven.havenId == activeId
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                if (isActive) t.accent.copy(alpha = 0.1f) else t.card,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .border(
+                                if (isActive) 1.5.dp else 1.dp,
+                                if (isActive) t.accent else t.border,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .clickable { viewModel.switchHaven(haven.havenId) }
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.Home, "Haven", Modifier.size(14.dp), tint = if (isActive) t.accent else t.textFade)
+                            Text(haven.havenName, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                                color = if (isActive) t.accent else t.textMid, fontFamily = SpaceMonoFamily)
+                        }
+                    }
                 }
             }
         }

@@ -3,10 +3,12 @@ package com.haven.app.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.haven.app.data.api.HavenApiManager
+import com.haven.app.data.api.HavenInfo
 import com.haven.app.data.api.toFamilyMember
 import com.haven.app.data.model.FamilyMember
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,6 +44,24 @@ class HomeViewModel @Inject constructor(
 
     val alertsCount: StateFlow<Int> = recentNotifications.map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    private val _myHavens = MutableStateFlow<List<HavenInfo>>(emptyList())
+    val myHavens: StateFlow<List<HavenInfo>> = _myHavens.asStateFlow()
+
+    val activeHavenId: String? get() = apiManager.havenId
+
+    init {
+        viewModelScope.launch {
+            _myHavens.value = apiManager.getMyHavens()
+        }
+    }
+
+    fun switchHaven(havenId: String) {
+        viewModelScope.launch {
+            apiManager.switchHaven(havenId)
+            _myHavens.value = apiManager.getMyHavens()
+        }
+    }
 }
 
 data class PlaceData(val id: String, val name: String, val address: String, val color: Long, val membersPresent: Int)

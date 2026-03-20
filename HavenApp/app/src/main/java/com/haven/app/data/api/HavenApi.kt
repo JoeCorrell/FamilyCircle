@@ -7,7 +7,8 @@ import retrofit2.http.*
 
 data class AuthRequest(val email: String? = null, val phone: String? = null, val password: String)
 data class AuthResponse(val token: String, val userId: String, val email: String?, val phone: String?, val havenId: String?)
-data class MeResponse(val id: String, val email: String, val havenId: String?, val memberName: String?)
+data class HavenInfo(val havenId: String, val havenName: String, val memberName: String, val inviteCode: String)
+data class MeResponse(val id: String, val email: String?, val phone: String?, val havenId: String?, val memberName: String?, val havens: List<HavenInfo> = emptyList())
 
 data class CreateHavenRequest(val name: String, val userName: String)
 data class JoinHavenRequest(val inviteCode: String, val userName: String)

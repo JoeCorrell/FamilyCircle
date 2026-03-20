@@ -81,6 +81,17 @@ class HavenApiManager @Inject constructor(
         }
     }
 
+    suspend fun getMyHavens(): List<HavenInfo> {
+        return try {
+            val resp = api.me()
+            if (resp.isSuccessful) resp.body()?.havens ?: emptyList() else emptyList()
+        } catch (_: Exception) { emptyList() }
+    }
+
+    suspend fun switchHaven(havenId: String) {
+        tokenStore.saveHavenId(havenId)
+    }
+
     // ── Haven ──
 
     suspend fun createHaven(name: String, userName: String): Result<HavenResponse> {
