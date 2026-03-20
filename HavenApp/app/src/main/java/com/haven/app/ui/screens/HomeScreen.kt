@@ -97,12 +97,12 @@ fun HomeScreen(
         }
 
         // ── Haven Switcher ──
-        if (myHavens.size > 1) {
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                val activeId = viewModel.activeHavenId
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            val activeId = viewModel.activeHavenId
+            if (myHavens.isNotEmpty()) {
                 myHavens.forEach { haven ->
                     val isActive = haven.havenId == activeId
                     Box(
@@ -116,9 +116,19 @@ fun HomeScreen(
                             color = if (isActive) t.accent else t.textMid, fontFamily = OutfitFamily)
                     }
                 }
+            } else {
+                // Fallback while loading
+                Box(
+                    modifier = Modifier
+                        .background(t.accent.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                        .border(1.5.dp, t.accent, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Text(familyName, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = OutfitFamily)
+                }
             }
-            Spacer(Modifier.height(4.dp))
         }
+        Spacer(Modifier.height(4.dp))
 
         Column(
             modifier = Modifier.padding(horizontal = 16.dp),
