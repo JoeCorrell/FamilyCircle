@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.google.services)
 }
 
 android {
@@ -88,12 +87,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.firestore)
-    implementation(libs.firebase.messaging)
-
     // Gson
     implementation(libs.gson)
 
@@ -106,6 +99,4 @@ dependencies {
     // Coil (image loading)
     implementation(libs.coil.compose)
 
-    // Firebase Storage
-    implementation(libs.firebase.storage)
 }

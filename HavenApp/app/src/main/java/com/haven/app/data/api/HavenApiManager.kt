@@ -129,15 +129,19 @@ class HavenApiManager @Inject constructor(
     // ── Members (polling-based flow) ──
 
     fun observeMembers(): Flow<List<MemberData>> = flow {
+        var firstLoad = true
         while (true) {
             val hid = tokenStore.getHavenId()
             if (hid != null) {
                 try {
                     val resp = api.getMembers(hid)
-                    if (resp.isSuccessful) emit(resp.body() ?: emptyList())
+                    if (resp.isSuccessful) {
+                        emit(resp.body() ?: emptyList())
+                        firstLoad = false
+                    }
                 } catch (_: Exception) {}
             }
-            delay(5000) // Poll every 5 seconds
+            delay(if (firstLoad) 1000 else 5000)
         }
     }.distinctUntilChanged()
 
@@ -160,15 +164,16 @@ class HavenApiManager @Inject constructor(
     // ── Messages (polling-based flow) ──
 
     fun observeMessages(): Flow<List<MessageData>> = flow {
+        var firstLoad = true
         while (true) {
             val hid = tokenStore.getHavenId()
             if (hid != null) {
                 try {
                     val resp = api.getMessages(hid)
-                    if (resp.isSuccessful) emit(resp.body() ?: emptyList())
+                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
                 } catch (_: Exception) {}
             }
-            delay(3000) // Poll every 3 seconds
+            delay(if (firstLoad) 1000 else 3000)
         }
     }.distinctUntilChanged()
 
@@ -180,15 +185,16 @@ class HavenApiManager @Inject constructor(
     // ── Places (polling-based flow) ──
 
     fun observePlaces(): Flow<List<PlaceData>> = flow {
+        var firstLoad = true
         while (true) {
             val hid = tokenStore.getHavenId()
             if (hid != null) {
                 try {
                     val resp = api.getPlaces(hid)
-                    if (resp.isSuccessful) emit(resp.body() ?: emptyList())
+                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
                 } catch (_: Exception) {}
             }
-            delay(10000) // Poll every 10 seconds
+            delay(if (firstLoad) 1000 else 10000)
         }
     }.distinctUntilChanged()
 
@@ -205,15 +211,16 @@ class HavenApiManager @Inject constructor(
     // ── Notifications (polling-based flow) ──
 
     fun observeNotifications(): Flow<List<NotificationData>> = flow {
+        var firstLoad = true
         while (true) {
             val hid = tokenStore.getHavenId()
             if (hid != null) {
                 try {
                     val resp = api.getNotifications(hid)
-                    if (resp.isSuccessful) emit(resp.body() ?: emptyList())
+                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
                 } catch (_: Exception) {}
             }
-            delay(15000) // Poll every 15 seconds
+            delay(if (firstLoad) 1000 else 15000)
         }
     }.distinctUntilChanged()
 

@@ -1,6 +1,10 @@
 package com.haven.app.ui.viewmodel
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.haven.app.data.api.HavenApiManager
@@ -9,12 +13,17 @@ import com.haven.app.data.model.EmergencyContact
 import com.haven.app.data.model.FamilyMember
 import com.haven.app.data.local.dao.EmergencyContactDao
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val apiManager: HavenApiManager,
     private val emergencyContactDao: EmergencyContactDao
 ) : ViewModel() {
@@ -80,8 +89,31 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun uploadAvatar(uri: Uri) {
-        // Photo upload requires Firebase Storage which we've removed.
-        // For now, profile photos are handled via avatar icons.
+        viewModelScope.launch {
+            isUploadingPhoto.value = true
+            try {
+                val base64 = withContext(Dispatchers.IO) {
+                    val inputStream = context.contentResolver.openInputStream(uri) ?: return@withContext null
+                    val original = BitmapFactory.decodeStream(inputStream)
+                    inputStream.close()
+
+                    // Resize to 200x200
+                    val size = 200
+                    val scaled = Bitmap.createScaledBitmap(original, size, size, true)
+                    original.recycle()
+
+                    val baos = ByteArrayOutputStream()
+                    scaled.compress(Bitmap.CompressFormat.JPEG, 70, baos)
+                    scaled.recycle()
+
+                    "data:image/jpeg;base64," + Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
+                }
+                if (base64 != null) {
+                    apiManager.updateMyMember(mapOf("photoUrl" to base64))
+                }
+            } catch (_: Exception) {}
+            isUploadingPhoto.value = false
+        }
     }
 
     fun updateAvatarIcon(iconName: String) {
