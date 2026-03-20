@@ -31,7 +31,10 @@ import com.haven.app.ui.components.HavenCard
 import com.haven.app.ui.theme.LocalHavenColors
 import com.haven.app.ui.theme.OutfitFamily
 import com.haven.app.ui.theme.SpaceMonoFamily
+import androidx.compose.ui.graphics.Brush
+import com.haven.app.data.api.HavenApiManager
 import com.haven.app.ui.viewmodel.ProfileViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun HavenManagementScreen(
@@ -48,6 +51,8 @@ fun HavenManagementScreen(
     var editingName by remember { mutableStateOf(false) }
     var nameDraft by remember(familyName) { mutableStateOf(familyName) }
     var codeCopied by remember { mutableStateOf(false) }
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var showJoinDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -240,8 +245,141 @@ fun HavenManagementScreen(
                     }
                 }
             }
+            // ── Add / Join Haven ──
+            Text(
+                "MORE HAVENS", fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                color = t.textFade, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                HavenCard(
+                    modifier = Modifier.weight(1f),
+                    onClick = { showCreateDialog = true }
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(Icons.Outlined.Add, "Create", Modifier.size(24.dp), tint = t.accent)
+                        Spacer(Modifier.height(6.dp))
+                        Text("Create Haven", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                        Text("Start a new group", fontSize = 9.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                    }
+                }
+                HavenCard(
+                    modifier = Modifier.weight(1f),
+                    onClick = { showJoinDialog = true }
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(Icons.Outlined.GroupAdd, "Join", Modifier.size(24.dp), tint = t.ok)
+                        Spacer(Modifier.height(6.dp))
+                        Text("Join Haven", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                        Text("Enter invite code", fontSize = 9.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                    }
+                }
+            }
         }
         Spacer(Modifier.height(24.dp))
+    }
+
+    // Create Haven Dialog
+    if (showCreateDialog) {
+        var newName by remember { mutableStateOf("") }
+        var newUserName by remember { mutableStateOf("") }
+        var creating by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
+
+        AlertDialog(
+            onDismissRequest = { showCreateDialog = false },
+            title = { Text("Create New Haven", fontFamily = OutfitFamily, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = newName, onValueChange = { newName = it },
+                        label = { Text("Haven Name") }, placeholder = { Text("e.g. My Family") },
+                        singleLine = true, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = newUserName, onValueChange = { newUserName = it },
+                        label = { Text("Your Name") }, placeholder = { Text("e.g. Joe") },
+                        singleLine = true, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = newName.isNotBlank() && newUserName.isNotBlank() && !creating,
+                    onClick = {
+                        creating = true
+                        scope.launch {
+                            viewModel.createNewHaven(newName, newUserName)
+                            showCreateDialog = false
+                        }
+                    }
+                ) { Text(if (creating) "Creating..." else "Create", fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCreateDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    // Join Haven Dialog
+    if (showJoinDialog) {
+        var joinCode by remember { mutableStateOf("") }
+        var joinUserName by remember { mutableStateOf("") }
+        var joining by remember { mutableStateOf(false) }
+        var joinError by remember { mutableStateOf<String?>(null) }
+        val scope = rememberCoroutineScope()
+
+        AlertDialog(
+            onDismissRequest = { showJoinDialog = false },
+            title = { Text("Join Haven", fontFamily = OutfitFamily, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = joinCode, onValueChange = { joinCode = it.uppercase() },
+                        label = { Text("Invite Code") }, placeholder = { Text("e.g. ABC123") },
+                        singleLine = true, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = joinUserName, onValueChange = { joinUserName = it },
+                        label = { Text("Your Name") }, placeholder = { Text("e.g. Joe") },
+                        singleLine = true, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()
+                    )
+                    if (joinError != null) {
+                        Text(joinError!!, color = LocalHavenColors.current.danger, fontSize = 12.sp, fontFamily = OutfitFamily)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = joinCode.length >= 4 && joinUserName.isNotBlank() && !joining,
+                    onClick = {
+                        joining = true
+                        joinError = null
+                        scope.launch {
+                            val result = viewModel.joinNewHaven(joinCode, joinUserName)
+                            if (result) {
+                                showJoinDialog = false
+                            } else {
+                                joinError = "Invalid invite code"
+                                joining = false
+                            }
+                        }
+                    }
+                ) { Text(if (joining) "Joining..." else "Join", fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showJoinDialog = false }) { Text("Cancel") }
+            }
+        )
     }
 }
 

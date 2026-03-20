@@ -142,6 +142,15 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    suspend fun createNewHaven(name: String, userName: String) {
+        apiManager.createHaven(name, userName)
+    }
+
+    suspend fun joinNewHaven(inviteCode: String, userName: String): Boolean {
+        val result = apiManager.joinHaven(inviteCode, userName)
+        return result.isSuccess
+    }
+
     fun updateMemberColor(color: Long) {
         viewModelScope.launch {
             apiManager.updateMyMember(mapOf("color" to color))
