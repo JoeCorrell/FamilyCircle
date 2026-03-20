@@ -59,6 +59,7 @@ fun ChatScreen(
     var errandItem by remember { mutableStateOf("") }
     var errandAddr by remember { mutableStateOf("") }
     var errandNote by remember { mutableStateOf("") }
+    var dismissedErrandIds by remember { mutableStateOf(setOf<String>()) }
 
     Column(modifier = Modifier.fillMaxSize().imePadding()) {
         // ── Header ──
@@ -106,8 +107,8 @@ fun ChatScreen(
         }
 
         // ── Errands Banner ──
-        val pendingErrands = errands.filter { it.status == "PENDING" }
-        val acceptedErrands = errands.filter { it.status == "ACCEPTED" }
+        val pendingErrands = errands.filter { it.status == "PENDING" && it.id !in dismissedErrandIds }
+        val acceptedErrands = errands.filter { it.status == "ACCEPTED" && it.id !in dismissedErrandIds }
 
         if (pendingErrands.isNotEmpty() || acceptedErrands.isNotEmpty()) {
             LazyColumn(
@@ -119,10 +120,10 @@ fun ChatScreen(
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 items(pendingErrands, key = { "e_${it.id}" }) { errand ->
-                    ErrandCard(errand, viewModel, t)
+                    ErrandCard(errand, viewModel, t) { dismissedErrandIds = dismissedErrandIds + errand.id }
                 }
                 items(acceptedErrands, key = { "ea_${it.id}" }) { errand ->
-                    AcceptedErrandCard(errand, t)
+                    AcceptedErrandCard(errand, t) { dismissedErrandIds = dismissedErrandIds + errand.id }
                 }
             }
         }
@@ -363,7 +364,25 @@ private fun MessageBubble(message: Message, memberColors: Map<String, Long>, t: 
 }
 
 @Composable
-private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: ChatViewModel, t: HavenColors) {
+private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: ChatViewModel, t: HavenColors, onDismiss: () -> Unit) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { it != SwipeToDismissBoxValue.Settled }
+    )
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) onDismiss()
+    }
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            val alignment = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) Alignment.CenterEnd else Alignment.CenterStart
+            Box(
+                Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(Color(0xFFEF4444).copy(alpha = 0.1f)),
+                contentAlignment = alignment
+            ) {
+                Icon(Icons.Outlined.Close, "Dismiss", Modifier.padding(horizontal = 20.dp).size(20.dp), tint = Color(0xFFEF4444))
+            }
+        }
+    ) {
     val isMe = errand.senderUid == viewModel.myUserId
     HavenCard(modifier = Modifier.fillMaxWidth()) {
         Column {
@@ -428,25 +447,45 @@ private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: Cha
             }
         }
     }
+    }
 }
 
 @Composable
-private fun AcceptedErrandCard(errand: com.haven.app.data.api.ErrandData, t: HavenColors) {
-    HavenCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-                .background(t.ok.copy(alpha = 0.05f))
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
+private fun AcceptedErrandCard(errand: com.haven.app.data.api.ErrandData, t: HavenColors, onDismiss: () -> Unit) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { it != SwipeToDismissBoxValue.Settled }
+    )
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) onDismiss()
+    }
+    SwipeToDismissBox(
+        state = dismissState,
+        backgroundContent = {
+            val alignment = if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) Alignment.CenterEnd else Alignment.CenterStart
             Box(
-                modifier = Modifier.size(34.dp).background(t.ok.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
-                contentAlignment = Alignment.Center
-            ) { Icon(Icons.Outlined.CheckCircle, "Done", Modifier.size(18.dp), tint = t.ok) }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(errand.item, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily)
-                Text("${errand.acceptedName ?: "Someone"} is on it", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.ok, fontFamily = SpaceMonoFamily)
+                Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)).background(Color(0xFFEF4444).copy(alpha = 0.1f)),
+                contentAlignment = alignment
+            ) {
+                Icon(Icons.Outlined.Close, "Dismiss", Modifier.padding(horizontal = 20.dp).size(20.dp), tint = Color(0xFFEF4444))
+            }
+        }
+    ) {
+        HavenCard(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .background(t.ok.copy(alpha = 0.05f))
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(
+                    modifier = Modifier.size(34.dp).background(t.ok.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
+                    contentAlignment = Alignment.Center
+                ) { Icon(Icons.Outlined.CheckCircle, "Done", Modifier.size(18.dp), tint = t.ok) }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(errand.item, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily)
+                    Text("${errand.acceptedName ?: "Someone"} is on it", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.ok, fontFamily = SpaceMonoFamily)
+                }
             }
         }
     }
