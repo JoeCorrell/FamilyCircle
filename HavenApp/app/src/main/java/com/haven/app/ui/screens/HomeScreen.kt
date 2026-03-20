@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.haven.app.data.model.FamilyMember
 import com.haven.app.ui.components.HavenCard
-import com.haven.app.ui.components.ScoreArc
+import androidx.compose.material.icons.outlined.DirectionsCar
 import com.haven.app.ui.theme.LocalHavenColors
 import com.haven.app.ui.theme.OutfitFamily
 import com.haven.app.ui.theme.SpaceMonoFamily
@@ -49,7 +49,7 @@ fun HomeScreen(
     val members by viewModel.members.collectAsStateWithLifecycle()
     val places by viewModel.places.collectAsStateWithLifecycle()
     val notifications by viewModel.recentNotifications.collectAsStateWithLifecycle()
-    val familyScore by viewModel.familyScore.collectAsStateWithLifecycle()
+    val drivesCount by viewModel.drivesCount.collectAsStateWithLifecycle()
     val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle()
     val familyName by viewModel.familyName.collectAsStateWithLifecycle()
 
@@ -299,7 +299,7 @@ fun HomeScreen(
                     }
                 }
 
-                // Drive Score tile
+                // Driving tile
                 HavenCard(
                     modifier = Modifier
                         .weight(1f)
@@ -308,20 +308,11 @@ fun HomeScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("DRIVING", style = labelStyle(), color = t.textFade)
+                        Spacer(Modifier.height(10.dp))
+                        Icon(Icons.Outlined.DirectionsCar, "Driving", Modifier.size(28.dp), tint = t.accent)
                         Spacer(Modifier.height(6.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            ScoreArc(value = familyScore, size = 46.dp)
-                            Spacer(Modifier.width(10.dp))
-                            Column {
-                                Text("Family Score", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily)
-                                Text(
-                                    if (familyScore >= 90) "EXCELLENT" else if (familyScore >= 70) "GOOD" else "NEEDS WORK",
-                                    fontSize = 9.sp,
-                                    color = if (familyScore >= 90) t.ok else if (familyScore >= 70) t.warn else t.danger,
-                                    fontFamily = SpaceMonoFamily
-                                )
-                            }
-                        }
+                        Text("View Trips", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily)
+                        Text("$drivesCount trips", fontSize = 9.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                     }
                 }
             }

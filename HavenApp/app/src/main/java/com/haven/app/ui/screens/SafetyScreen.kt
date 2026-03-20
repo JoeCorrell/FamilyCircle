@@ -2,9 +2,10 @@ package com.haven.app.ui.screens
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -20,12 +21,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.haven.app.data.model.Drive
 import com.haven.app.ui.components.HavenCard
-import com.haven.app.ui.components.ScoreArc
+import com.haven.app.ui.components.HavenToggle
 import com.haven.app.ui.theme.LocalHavenColors
 import com.haven.app.ui.theme.OutfitFamily
 import com.haven.app.ui.theme.SpaceMonoFamily
-import androidx.compose.material.icons.outlined.ChevronLeft
-import com.haven.app.ui.components.HavenToggle
 import com.haven.app.ui.viewmodel.SafetyViewModel
 
 @Composable
@@ -36,8 +35,6 @@ fun SafetyScreen(
 ) {
     val t = LocalHavenColors.current
     val drives by viewModel.drives.collectAsStateWithLifecycle()
-    val familyScore by viewModel.familyScore.collectAsStateWithLifecycle()
-    val weeklyScores by viewModel.weeklyScores.collectAsStateWithLifecycle()
     val memberCount by viewModel.memberCount.collectAsStateWithLifecycle()
 
     Column(
@@ -61,11 +58,9 @@ fun SafetyScreen(
                 Icon(Icons.Outlined.ChevronLeft, "Back", Modifier.size(16.dp), tint = t.accent)
             }
             Text(
-                "Safety", fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = t.text,
-                fontFamily = OutfitFamily,
-                letterSpacing = (-0.5).sp
+                "Driving", fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold, color = t.text,
+                fontFamily = OutfitFamily, letterSpacing = (-0.5).sp
             )
         }
 
@@ -100,86 +95,32 @@ fun SafetyScreen(
                 HavenToggle(checked = crashOn, onCheckedChange = { crashOn = it })
             }
 
-            // Weekly Score Card
-            HavenCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(14.dp)
-                    ) {
-                        ScoreArc(value = familyScore, size = 58.dp)
-                        Column {
-                            Text(
-                                "Family Score", fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold, color = t.text,
-                                fontFamily = OutfitFamily
-                            )
-                            Text(
-                                if (familyScore >= 90) "EXCELLENT" else if (familyScore >= 70) "GOOD" else "NEEDS WORK",
-                                fontSize = 11.sp,
-                                color = if (familyScore >= 90) t.ok else if (familyScore >= 70) t.warn else t.danger,
-                                fontFamily = SpaceMonoFamily
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(14.dp))
-
-                    // Weekly bar chart
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(36.dp),
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        verticalAlignment = Alignment.Bottom
-                    ) {
-                        weeklyScores.forEachIndexed { index, score ->
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight(score / 100f)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(
-                                        if (index == weeklyScores.lastIndex) t.accent
-                                        else t.accent.copy(alpha = 0.16f)
-                                    )
-                            )
-                        }
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        listOf("M", "T", "W", "T", "F", "S", "S").forEach { day ->
-                            Text(
-                                day, modifier = Modifier.weight(1f),
-                                fontSize = 8.sp, color = t.textFade,
-                                fontFamily = SpaceMonoFamily,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Drives header
+            // Trips header
             Text(
-                "DRIVES",
-                fontSize = 10.sp, fontWeight = FontWeight.Bold,
-                color = t.textFade, fontFamily = SpaceMonoFamily,
-                letterSpacing = 1.5.sp
+                "TRIPS", fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                color = t.textFade, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp
             )
 
-            // Drive list
             if (drives.isEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "No drives recorded yet.\nDrives will appear here automatically when detected.",
-                        modifier = Modifier.padding(20.dp),
-                        fontSize = 13.sp, color = t.textMid,
-                        fontFamily = OutfitFamily,
-                        lineHeight = 20.sp
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(28.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(Icons.Outlined.DirectionsCar, "No trips", Modifier.size(36.dp), tint = t.textFade)
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            "No trips yet", fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                            color = t.text, fontFamily = OutfitFamily
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Trips are detected automatically when\nyou drive above 15 mph.",
+                            fontSize = 12.sp, color = t.textMid, fontFamily = OutfitFamily,
+                            lineHeight = 18.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
                 }
             } else {
                 drives.forEach { drive ->
@@ -187,22 +128,46 @@ fun SafetyScreen(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { onDriveClick(drive) }
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            ScoreArc(value = drive.score, size = 40.dp)
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    "${drive.memberName} \u2014 ${drive.fromLocation} \u2192 ${drive.toLocation}",
-                                    fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                                    color = t.text, fontFamily = OutfitFamily
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            // Route + time
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(38.dp)
+                                        .background(t.accentBg, RoundedCornerShape(12.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Outlined.DirectionsCar, "Drive", Modifier.size(18.dp), tint = t.accent)
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "${drive.fromLocation} to ${drive.toLocation}",
+                                        fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                                        color = t.text, fontFamily = OutfitFamily
+                                    )
+                                    Text(
+                                        "${drive.formattedDate()} - ${drive.memberName}",
+                                        fontSize = 10.sp, color = t.textFade, fontFamily = SpaceMonoFamily
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(12.dp))
+                            // Stats row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                TripStat(label = "DIST", value = drive.formattedDistance(), color = t.text, t = t)
+                                TripStat(label = "TIME", value = drive.formattedDuration(), color = t.text, t = t)
+                                TripStat(
+                                    label = "TOP", value = "${drive.topSpeedMph.toInt()} mph",
+                                    color = if (drive.topSpeedMph > 80) t.danger else if (drive.topSpeedMph > 55) t.warn else t.ok, t = t
                                 )
-                                Text(
-                                    "${drive.formattedDate()} \u2022 ${drive.formattedDistance()}",
-                                    fontSize = 10.sp, color = t.textFade,
-                                    fontFamily = SpaceMonoFamily
+                                TripStat(
+                                    label = "BRAKES", value = "${drive.harshBrakes}",
+                                    color = if (drive.harshBrakes > 2) t.danger else if (drive.harshBrakes > 0) t.warn else t.ok, t = t
                                 )
                             }
                         }
@@ -211,5 +176,13 @@ fun SafetyScreen(
             }
         }
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun TripStat(label: String, value: String, color: Color, t: com.haven.app.ui.theme.HavenColors) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, fontSize = 15.sp, fontWeight = FontWeight.Black, color = color, fontFamily = SpaceMonoFamily)
+        Text(label, fontSize = 7.sp, fontWeight = FontWeight.Bold, color = t.textFade, fontFamily = SpaceMonoFamily, letterSpacing = 1.sp)
     }
 }
