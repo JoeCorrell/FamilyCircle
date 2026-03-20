@@ -2,6 +2,7 @@ package com.haven.app.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.haven.app.data.api.ErrandData
 import com.haven.app.data.api.HavenApiManager
 import com.haven.app.data.api.HavenInfo
 import com.haven.app.data.api.toFamilyMember
@@ -44,6 +45,10 @@ class HomeViewModel @Inject constructor(
 
     val alertsCount: StateFlow<Int> = recentNotifications.map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val recentErrands: StateFlow<List<ErrandData>> = apiManager.observeErrands()
+        .map { it.take(3) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _myHavens = MutableStateFlow<List<HavenInfo>>(emptyList())
     val myHavens: StateFlow<List<HavenInfo>> = _myHavens.asStateFlow()

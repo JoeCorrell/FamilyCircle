@@ -53,6 +53,7 @@ fun HomeScreen(
     val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle()
     val familyName by viewModel.familyName.collectAsStateWithLifecycle()
     val myHavens by viewModel.myHavens.collectAsStateWithLifecycle()
+    val recentErrands by viewModel.recentErrands.collectAsStateWithLifecycle()
     val label = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp)
 
     Column(
@@ -275,21 +276,41 @@ fun HomeScreen(
                 }
             }
 
-            // ── Family Safety Tips ──
-            HavenCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("SAFETY TIPS", style = label, color = t.textFade)
-                    Spacer(Modifier.height(10.dp))
-                    val tips = listOf(
-                        "Set up saved places to get arrival and departure alerts",
-                        "Add emergency contacts in your profile for SOS alerts",
-                        "Share your Haven invite code so family members can join",
-                        "Keep location sharing on so your family knows you're safe"
-                    )
-                    val tipIndex = remember { (System.currentTimeMillis() / 60000 % tips.size).toInt() }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
-                        Icon(Icons.Outlined.Lightbulb, "Tip", Modifier.size(18.dp), tint = t.warn)
-                        Text(tips[tipIndex], fontSize = 12.sp, color = t.textMid, fontFamily = OutfitFamily, lineHeight = 18.sp)
+            // ── Recent Errands ──
+            if (recentErrands.isNotEmpty()) {
+                HavenCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("ERRANDS", style = label, color = t.textFade)
+                        Spacer(Modifier.height(10.dp))
+                        recentErrands.forEach { errand ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(28.dp).background(
+                                        if (errand.status == "ACCEPTED") t.ok.copy(alpha = 0.1f) else t.warn.copy(alpha = 0.1f),
+                                        RoundedCornerShape(8.dp)
+                                    ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        if (errand.status == "ACCEPTED") Icons.Outlined.Check else Icons.Outlined.Assignment,
+                                        null, Modifier.size(14.dp),
+                                        tint = if (errand.status == "ACCEPTED") t.ok else t.warn
+                                    )
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(errand.item, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(
+                                        if (errand.status == "ACCEPTED") "${errand.acceptedName} is on it"
+                                        else "${errand.senderName} needs this",
+                                        fontSize = 9.sp, color = if (errand.status == "ACCEPTED") t.ok else t.textFade, fontFamily = SpaceMonoFamily
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

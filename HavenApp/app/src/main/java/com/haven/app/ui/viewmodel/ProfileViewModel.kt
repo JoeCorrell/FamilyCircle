@@ -143,11 +143,18 @@ class ProfileViewModel @Inject constructor(
     }
 
     suspend fun createNewHaven(name: String, userName: String) {
-        apiManager.createHaven(name, userName)
+        val result = apiManager.createHaven(name, userName)
+        result.onSuccess {
+            // Switch to the new Haven
+            apiManager.switchHaven(it.haven.id)
+        }
     }
 
     suspend fun joinNewHaven(inviteCode: String, userName: String): Boolean {
         val result = apiManager.joinHaven(inviteCode, userName)
+        result.onSuccess {
+            apiManager.switchHaven(it.haven.id)
+        }
         return result.isSuccess
     }
 

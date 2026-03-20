@@ -9,17 +9,17 @@ import androidx.compose.ui.unit.sp
 import com.haven.app.R
 
 val OutfitFamily = FontFamily(
-    Font(R.font.plusjakarta_regular, FontWeight.Normal),
-    Font(R.font.plusjakarta_medium, FontWeight.Medium),
-    Font(R.font.plusjakarta_semibold, FontWeight.SemiBold),
-    Font(R.font.plusjakarta_bold, FontWeight.Bold),
-    Font(R.font.plusjakarta_extrabold, FontWeight.ExtraBold),
-    Font(R.font.plusjakarta_extrabold, FontWeight.Black),
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_bold, FontWeight.Bold),
+    Font(R.font.inter_extrabold, FontWeight.ExtraBold),
+    Font(R.font.inter_extrabold, FontWeight.Black),
 )
 
 val SpaceMonoFamily = FontFamily(
-    Font(R.font.jetbrainsmono_regular, FontWeight.Normal),
-    Font(R.font.jetbrainsmono_bold, FontWeight.Bold),
+    Font(R.font.spacegrotesk_regular, FontWeight.Normal),
+    Font(R.font.spacegrotesk_bold, FontWeight.Bold),
 )
 
 val HavenTypography = Typography(
