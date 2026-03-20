@@ -86,4 +86,11 @@ class ChatViewModel @Inject constructor(
             apiManager.acceptErrand(errandId, myMemberName.value)
         }
     }
+
+    private val _dismissedErrandIds = MutableStateFlow(setOf<String>())
+    val dismissedErrandIds: StateFlow<Set<String>> = _dismissedErrandIds.asStateFlow()
+
+    fun dismissErrand(id: String) {
+        _dismissedErrandIds.value = _dismissedErrandIds.value + id
+    }
 }

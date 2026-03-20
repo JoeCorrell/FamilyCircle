@@ -223,7 +223,8 @@ class LocationService : Service() {
                             val haven = try { apiManager.api.getHaven(hid).body() } catch (_: Exception) { null }
                             val sosActive = haven?.activeSos == true
                             val sosBy = haven?.lastSosBy
-                            if (sosActive && !hasAlertedForCurrentSos) {
+                            val myName = haven?.members?.firstOrNull { it.userId == apiManager.userId }?.name
+                            if (sosActive && !hasAlertedForCurrentSos && sosBy != myName) {
                                 // New SOS — alert once
                                 hasAlertedForCurrentSos = true
 
@@ -292,9 +293,6 @@ class LocationService : Service() {
                 try {
                     if (!apiManager.isSignedIn) { delay(5000); continue }
 
-                    // Check for new notifications
-                    val notifs = apiManager.observeNotifications()
-                    // We can't easily collect a flow here, so use direct API calls
                     val myName = apiManager.getMyMember()?.name ?: "You"
                     val haven = apiManager.getHaven()
 

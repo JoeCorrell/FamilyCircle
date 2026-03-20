@@ -42,7 +42,7 @@ object ApiModule {
         }
 
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (com.haven.app.BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
         }
 
         return OkHttpClient.Builder()
@@ -119,6 +119,7 @@ class TokenStore @javax.inject.Inject constructor(
     }
 
     suspend fun clear() {
+        cachedToken = null; cachedUserId = null; cachedHavenId = null
         userPreferences.setString(TOKEN_KEY, "")
         userPreferences.setString(USER_ID_KEY, "")
         userPreferences.setString(HAVEN_ID_KEY, "")

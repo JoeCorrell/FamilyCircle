@@ -90,12 +90,8 @@ class HavenApiManager @Inject constructor(
 
     suspend fun switchHaven(havenId: String) {
         tokenStore.saveHavenId(havenId)
-        // Reset SOS state so old alerts don't carry over
-        _sosCleared = true
+        sosReceived.value = null  // Clear any active SOS alert when switching havens
     }
-
-    @Volatile
-    var _sosCleared = false
 
     // SOS received state — observed by UI to show full-screen alert
     data class SosAlert(val senderName: String, val latitude: Double, val longitude: Double)

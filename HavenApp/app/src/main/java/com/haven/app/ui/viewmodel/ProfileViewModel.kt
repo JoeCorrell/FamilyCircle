@@ -63,7 +63,8 @@ class ProfileViewModel @Inject constructor(
     val emergencyContacts: StateFlow<List<EmergencyContact>> = emergencyContactDao.getAllContacts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val isUploadingPhoto = MutableStateFlow(false)
+    private val _isUploadingPhoto = MutableStateFlow(false)
+    val isUploadingPhoto: StateFlow<Boolean> = _isUploadingPhoto.asStateFlow()
 
     val userColor: StateFlow<Long> = myMemberFlow
         .map { it?.colorAsLong() ?: 0xFFE879A0 }
@@ -90,12 +91,11 @@ class ProfileViewModel @Inject constructor(
 
     fun uploadAvatar(uri: Uri) {
         viewModelScope.launch {
-            isUploadingPhoto.value = true
+            _isUploadingPhoto.value = true
             try {
                 val base64 = withContext(Dispatchers.IO) {
-                    val inputStream = context.contentResolver.openInputStream(uri) ?: return@withContext null
-                    val original = BitmapFactory.decodeStream(inputStream)
-                    inputStream.close()
+                    val original = context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
+                        ?: return@withContext null
 
                     // Resize to 200x200
                     val size = 200
@@ -112,7 +112,7 @@ class ProfileViewModel @Inject constructor(
                     apiManager.updateMyMember(mapOf("photoUrl" to base64))
                 }
             } catch (_: Exception) {}
-            isUploadingPhoto.value = false
+            _isUploadingPhoto.value = false
         }
     }
 

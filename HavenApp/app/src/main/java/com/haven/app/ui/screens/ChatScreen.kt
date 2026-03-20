@@ -1,7 +1,6 @@
 package com.haven.app.ui.screens
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,6 +46,7 @@ fun ChatScreen(
     val memberColors by viewModel.memberColors.collectAsStateWithLifecycle()
     val errands by viewModel.errands.collectAsStateWithLifecycle()
     val familyName by viewModel.familyName.collectAsStateWithLifecycle()
+    val dismissedErrandIds by viewModel.dismissedErrandIds.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size) {
@@ -59,7 +59,6 @@ fun ChatScreen(
     var errandItem by remember { mutableStateOf("") }
     var errandAddr by remember { mutableStateOf("") }
     var errandNote by remember { mutableStateOf("") }
-    var dismissedErrandIds by remember { mutableStateOf(setOf<String>()) }
 
     Column(modifier = Modifier.fillMaxSize().imePadding()) {
         // ── Header ──
@@ -120,10 +119,10 @@ fun ChatScreen(
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 items(pendingErrands, key = { "e_${it.id}" }) { errand ->
-                    ErrandCard(errand, viewModel, t) { dismissedErrandIds = dismissedErrandIds + errand.id }
+                    ErrandCard(errand, viewModel, t) { viewModel.dismissErrand(errand.id) }
                 }
                 items(acceptedErrands, key = { "ea_${it.id}" }) { errand ->
-                    AcceptedErrandCard(errand, t) { dismissedErrandIds = dismissedErrandIds + errand.id }
+                    AcceptedErrandCard(errand, t) { viewModel.dismissErrand(errand.id) }
                 }
             }
         }
@@ -151,12 +150,7 @@ fun ChatScreen(
             contentPadding = PaddingValues(bottom = 6.dp)
         ) {
             items(messages, key = { "${it.timestamp}_${it.senderName}" }) { message ->
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(200)) + slideInVertically(tween(200)) { it / 3 }
-                ) {
-                    MessageBubble(message, memberColors, t)
-                }
+                MessageBubble(message, memberColors, t)
             }
         }
 

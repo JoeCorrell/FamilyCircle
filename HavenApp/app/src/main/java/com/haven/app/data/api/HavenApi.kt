@@ -107,9 +107,6 @@ interface HavenApi {
     @GET("api/auth/me")
     suspend fun me(): Response<MeResponse>
 
-    @PATCH("api/auth/me")
-    suspend fun updateEmail(@Body body: Map<String, String>): Response<Map<String, String>>
-
     // Havens
     @POST("api/havens")
     suspend fun createHaven(@Body body: CreateHavenRequest): Response<HavenResponse>
