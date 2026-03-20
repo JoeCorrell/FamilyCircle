@@ -66,7 +66,7 @@ fun ChatScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(t.card)
-                .shadow(2.dp)
+                .border(width = 1.dp, color = t.border)
                 .padding(horizontal = 20.dp, vertical = 14.dp)
         ) {
             Row(
@@ -168,8 +168,8 @@ fun ChatScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(8.dp)
                     .background(t.card)
+                    .border(1.dp, t.border)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -326,11 +326,6 @@ private fun MessageBubble(message: Message, memberColors: Map<String, Long>, t: 
         // Bubble
         Column(
             modifier = Modifier.widthIn(max = 280.dp)
-                .shadow(1.dp, RoundedCornerShape(
-                    topStart = 20.dp, topEnd = 20.dp,
-                    bottomStart = if (isMe) 20.dp else 4.dp,
-                    bottomEnd = if (isMe) 4.dp else 20.dp
-                ))
                 .clip(RoundedCornerShape(
                     topStart = 20.dp, topEnd = 20.dp,
                     bottomStart = if (isMe) 20.dp else 4.dp,
