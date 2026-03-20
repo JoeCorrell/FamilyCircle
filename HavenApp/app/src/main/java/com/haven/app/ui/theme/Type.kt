@@ -2,31 +2,25 @@ package com.haven.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.haven.app.R
 
-// To use custom Outfit + Space Mono fonts:
-// 1. Download from Google Fonts (https://fonts.google.com)
-// 2. Place .ttf files in app/src/main/res/font/
-// 3. Uncomment the Font() lines below and import com.haven.app.R + Font
-//
-// val OutfitFamily = FontFamily(
-//     Font(R.font.outfit_regular, FontWeight.Normal),
-//     Font(R.font.outfit_medium, FontWeight.Medium),
-//     Font(R.font.outfit_semibold, FontWeight.SemiBold),
-//     Font(R.font.outfit_bold, FontWeight.Bold),
-//     Font(R.font.outfit_extrabold, FontWeight.ExtraBold),
-//     Font(R.font.outfit_black, FontWeight.Black),
-// )
-//
-// val SpaceMonoFamily = FontFamily(
-//     Font(R.font.spacemono_regular, FontWeight.Normal),
-//     Font(R.font.spacemono_bold, FontWeight.Bold),
-// )
+val OutfitFamily = FontFamily(
+    Font(R.font.plusjakarta_regular, FontWeight.Normal),
+    Font(R.font.plusjakarta_medium, FontWeight.Medium),
+    Font(R.font.plusjakarta_semibold, FontWeight.SemiBold),
+    Font(R.font.plusjakarta_bold, FontWeight.Bold),
+    Font(R.font.plusjakarta_extrabold, FontWeight.ExtraBold),
+    Font(R.font.plusjakarta_extrabold, FontWeight.Black),
+)
 
-val OutfitFamily = FontFamily.SansSerif
-val SpaceMonoFamily = FontFamily.Monospace
+val SpaceMonoFamily = FontFamily(
+    Font(R.font.jetbrainsmono_regular, FontWeight.Normal),
+    Font(R.font.jetbrainsmono_bold, FontWeight.Bold),
+)
 
 val HavenTypography = Typography(
     displayLarge = TextStyle(fontFamily = OutfitFamily, fontWeight = FontWeight.Black, fontSize = 56.sp),
