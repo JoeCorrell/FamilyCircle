@@ -11,11 +11,11 @@ import dagger.hilt.android.HiltAndroidApp
 class HavenApp : Application() {
 
     companion object {
-        const val LOCATION_CHANNEL_ID = "haven_location"
-        const val SOS_CHANNEL_ID = "haven_sos"
-        const val ALERTS_CHANNEL_ID = "haven_alerts"
-        const val GEOFENCE_CHANNEL_ID = "haven_geofence"
-        const val MESSAGES_CHANNEL_ID = "haven_messages"
+        const val LOCATION_CHANNEL_ID = "haven_location_v2"
+        const val SOS_CHANNEL_ID = "haven_sos_v2"
+        const val ALERTS_CHANNEL_ID = "haven_alerts_v2"
+        const val GEOFENCE_CHANNEL_ID = "haven_geofence_v2"
+        const val MESSAGES_CHANNEL_ID = "haven_messages_v2"
     }
 
     override fun onCreate() {
@@ -25,6 +25,12 @@ class HavenApp : Application() {
 
     private fun createNotificationChannels() {
         val manager = getSystemService(NotificationManager::class.java)
+
+        // Delete old channels (Android caches channel settings and never updates them)
+        listOf("haven_location", "haven_sos", "haven_alerts", "haven_geofence", "haven_messages").forEach {
+            manager.deleteNotificationChannel(it)
+        }
+
         val soundUri = Uri.parse("android.resource://$packageName/${R.raw.notification}")
         val audioAttributes = AudioAttributes.Builder()
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
