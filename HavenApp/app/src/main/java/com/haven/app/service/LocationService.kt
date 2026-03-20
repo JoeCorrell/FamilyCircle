@@ -47,6 +47,7 @@ class LocationService : Service() {
     private var lastNotifTimestamp = 0L
     private var lastMessageCount = -1
     private var lastSosState = false
+    private var sosDismissed = false
 
     companion object {
         const val NOTIFICATION_ID = 1001
@@ -224,7 +225,7 @@ class LocationService : Service() {
                         val sosActive = haven?.activeSos == true
                         val sosBy = haven?.lastSosBy
 
-                        if (sosActive && !lastSosState) {
+                        if (sosActive && !lastSosState && !sosDismissed) {
                             // Find the SOS sender's coordinates
                             val sender = haven?.members?.firstOrNull { it.name == sosBy }
                             val lat = sender?.latitude ?: 0.0
@@ -277,8 +278,14 @@ class LocationService : Service() {
                         } else if (!sosActive && lastSosState) {
                             NotificationManagerCompat.from(this@LocationService).cancel(SOS_NOTIFICATION_ID)
                             apiManager.sosReceived.value = null
+                            sosDismissed = false // Reset for next SOS
                         }
                         lastSosState = sosActive
+
+                        // Check if user dismissed the SOS overlay
+                        if (sosActive && apiManager.sosReceived.value == null && lastSosState) {
+                            sosDismissed = true
+                        }
                     }
                 } catch (_: Exception) {}
                 delay(3000)

@@ -72,7 +72,7 @@ class HomeViewModel @Inject constructor(
             while (true) {
                 try {
                     val (active, senderName) = apiManager.checkSosActive()
-                    if (active && apiManager.sosReceived.value == null) {
+                    if (active && apiManager.sosReceived.value == null && !apiManager._sosCleared) {
                         // Get sender's location
                         val haven = apiManager.getHaven()
                         val sender = haven?.members?.firstOrNull { it.name == senderName }
@@ -101,6 +101,7 @@ class HomeViewModel @Inject constructor(
 
     fun dismissSos() {
         apiManager.dismissSosAlert()
+        apiManager._sosCleared = true
     }
 
     fun switchHaven(havenId: String) {
