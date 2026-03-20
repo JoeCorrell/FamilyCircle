@@ -78,7 +78,7 @@ private val pages = listOf(
         subtitle = "CUSTOMIZE YOUR EXPERIENCE",
         description = "Edit your profile, change themes, manage your circle, and adjust notification preferences from Settings. Haven keeps your family connected and safe.",
         tipTitle = "Themes",
-        tipText = "Try the 5 beautiful themes: Sand, Charcoal, Ocean, Flora, and Dusk. Find them in Settings > Appearance."
+        tipText = "Choose from 10 themes including Sand, Ocean, Midnight, Rose, and more. Find them in Settings > Appearance."
     )
 )
 
