@@ -67,7 +67,7 @@ fun SettingsScreen(
     val userPhotoUrl by viewModel.userPhotoUrl.collectAsStateWithLifecycle()
     val userAvatarIcon by viewModel.userAvatarIcon.collectAsStateWithLifecycle()
     val userColor by viewModel.userColor.collectAsStateWithLifecycle()
-    val userEmail by viewModel.userEmail.collectAsStateWithLifecycle()
+    val userPhone by viewModel.userPhone.collectAsStateWithLifecycle()
 
     val avatarIconMap = mapOf(
         "Person" to Icons.Outlined.Person, "Face" to Icons.Outlined.Face,
@@ -201,7 +201,7 @@ fun SettingsScreen(
                             color = t.text, fontFamily = OutfitFamily
                         )
                         Text(
-                            userEmail.ifEmpty { "No email" },
+                            userPhone.ifEmpty { "No phone" },
                             fontSize = 10.sp, color = t.textFade,
                             fontFamily = SpaceMonoFamily,
                             maxLines = 1, overflow = TextOverflow.Ellipsis

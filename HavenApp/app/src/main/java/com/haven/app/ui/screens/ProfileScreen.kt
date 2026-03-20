@@ -69,11 +69,8 @@ fun ProfileScreen(
     val avatarIcon by viewModel.avatarIcon.collectAsStateWithLifecycle()
     val userColor by viewModel.userColor.collectAsStateWithLifecycle()
     val phoneNumber by viewModel.phoneNumber.collectAsStateWithLifecycle()
-    val email by viewModel.email.collectAsStateWithLifecycle()
-
     var nameDraft by remember(userName) { mutableStateOf(userName) }
     var phoneDraft by remember(phoneNumber) { mutableStateOf(phoneNumber) }
-    var emailDraft by remember(email) { mutableStateOf(email) }
     var selectedHue by remember(userColor) { mutableStateOf(userColor) }
     var selectedIcon by remember(avatarIcon) { mutableStateOf(avatarIcon) }
     var showIconPicker by remember { mutableStateOf(false) }
@@ -420,40 +417,6 @@ fun ProfileScreen(
                 )
             }
 
-            // ── Email Field ──
-            Column {
-                Text(
-                    "EMAIL", fontSize = 10.sp, fontWeight = FontWeight.Bold,
-                    color = t.textFade, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp
-                )
-                Spacer(Modifier.height(6.dp))
-                OutlinedTextField(
-                    value = emailDraft,
-                    onValueChange = { emailDraft = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("your@email.com") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = t.accent,
-                        unfocusedBorderColor = t.border,
-                        focusedContainerColor = if (t.isDark) t.surfaceAlt else t.bgSub,
-                        unfocusedContainerColor = if (t.isDark) t.surfaceAlt else t.bgSub,
-                        cursorColor = t.accent,
-                        focusedTextColor = t.text,
-                        unfocusedTextColor = t.text,
-                    ),
-                    leadingIcon = { Icon(Icons.Outlined.Email, "Email", Modifier.size(18.dp), tint = t.textFade) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Shown on your profile in settings",
-                    fontSize = 10.sp, color = t.textFade, fontFamily = OutfitFamily
-                )
-            }
-
             // ── Save Button ──
             Box(
                 modifier = Modifier
@@ -473,9 +436,6 @@ fun ProfileScreen(
                         }
                         if (phoneDraft.isNotBlank()) {
                             viewModel.updatePhoneNumber(phoneDraft)
-                        }
-                        if (emailDraft.isNotBlank()) {
-                            viewModel.updateEmail(emailDraft)
                         }
                         viewModel.updateMemberColor(selectedHue)
                         viewModel.updateAvatarIcon(selectedIcon)

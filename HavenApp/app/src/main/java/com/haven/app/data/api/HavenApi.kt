@@ -88,7 +88,8 @@ data class LocationHistoryEntry(
 
 data class HavenDetailResponse(
     val id: String, val name: String, val inviteCode: String,
-    val activeSos: Boolean, val members: List<MemberData>
+    val activeSos: Boolean, val lastSosBy: String? = null,
+    val members: List<MemberData>
 )
 
 // ── Retrofit API Interface ──

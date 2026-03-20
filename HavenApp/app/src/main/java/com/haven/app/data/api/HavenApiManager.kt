@@ -132,6 +132,11 @@ class HavenApiManager @Inject constructor(
         } catch (_: Exception) { null }
     }
 
+    suspend fun checkSosActive(): Pair<Boolean, String?> {
+        val haven = getHaven() ?: return false to null
+        return haven.activeSos to haven.lastSosBy
+    }
+
     suspend fun updateHavenName(name: String) {
         val hid = tokenStore.getHavenId() ?: return
         try { api.updateHaven(hid, mapOf("name" to name)) } catch (_: Exception) {}

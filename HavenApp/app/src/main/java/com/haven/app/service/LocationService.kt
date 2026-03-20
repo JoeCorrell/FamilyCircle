@@ -9,6 +9,9 @@ import android.location.Geocoder
 import android.os.BatteryManager
 import android.os.IBinder
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
@@ -43,9 +46,11 @@ class LocationService : Service() {
     private var wasDriving = false
     private var lastNotifTimestamp = 0L
     private var lastMessageCount = -1
+    private var lastSosState = false
 
     companion object {
         const val NOTIFICATION_ID = 1001
+        const val SOS_NOTIFICATION_ID = 8888
         const val ACTION_START = "com.haven.app.START_LOCATION"
         const val ACTION_STOP = "com.haven.app.STOP_LOCATION"
     }
@@ -275,8 +280,44 @@ class LocationService : Service() {
                         }
                         lastNotifTimestamp = System.currentTimeMillis()
                     }
+
+                    // Check for SOS
+                    val (sosActive, sosBy) = apiManager.checkSosActive()
+                    if (sosActive && !lastSosState) {
+                        // SOS just activated — show high priority notification
+                        val sosNotif = NotificationCompat.Builder(this@LocationService, com.haven.app.HavenApp.SOS_CHANNEL_ID)
+                            .setSmallIcon(R.drawable.ic_sos)
+                            .setContentTitle("SOS ALERT")
+                            .setContentText("${sosBy ?: "A family member"} activated SOS! They need help!")
+                            .setPriority(NotificationCompat.PRIORITY_MAX)
+                            .setCategory(NotificationCompat.CATEGORY_ALARM)
+                            .setAutoCancel(false)
+                            .setOngoing(true)
+                            .setSound(android.net.Uri.parse("android.resource://${packageName}/${R.raw.notification}"))
+                            .setVibrate(longArrayOf(0, 500, 200, 500, 200, 500, 200, 500))
+                            .setFullScreenIntent(null, true)
+                            .build()
+
+                        if (ContextCompat.checkSelfPermission(this@LocationService, Manifest.permission.POST_NOTIFICATIONS)
+                            == PackageManager.PERMISSION_GRANTED) {
+                            NotificationManagerCompat.from(this@LocationService).notify(SOS_NOTIFICATION_ID, sosNotif)
+                        }
+
+                        // Also vibrate the device
+                        val vibrator = getSystemService(Vibrator::class.java)
+                        vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 500, 200, 500, 200, 500, 200, 500), -1))
+
+                        // Send broadcast so the app shows SOS overlay if open
+                        val intent = android.content.Intent("com.haven.app.SOS_ALERT")
+                        intent.putExtra("senderName", sosBy ?: "Family Member")
+                        sendBroadcast(intent)
+                    } else if (!sosActive && lastSosState) {
+                        // SOS cleared
+                        NotificationManagerCompat.from(this@LocationService).cancel(SOS_NOTIFICATION_ID)
+                    }
+                    lastSosState = sosActive
                 } catch (_: Exception) {}
-                delay(10000) // Check every 10 seconds
+                delay(5000) // Check every 5 seconds (faster for SOS)
             }
         }
     }
