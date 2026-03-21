@@ -43,30 +43,30 @@ fun SafetyScreen(
             .verticalScroll(rememberScrollState())
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(horizontal = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Crash Detection Banner
             var crashOn by remember { mutableStateOf(true) }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(18.dp))
                     .background(Brush.linearGradient(listOf(t.accent, t.accentMid)))
-                    .padding(horizontal = 20.dp, vertical = 18.dp),
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Outlined.Shield, "Shield", Modifier.size(26.dp), tint = Color.White)
+                Icon(Icons.Outlined.Shield, "Shield", Modifier.size(24.dp), tint = Color.White)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         if (crashOn) "Crash Detection On" else "Crash Detection Off",
-                        fontSize = 15.sp, fontWeight = FontWeight.ExtraBold,
+                        fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
                         color = Color.White, fontFamily = OutfitFamily
                     )
                     Text(
                         if (crashOn) "ALL $memberCount MEMBERS" else "DISABLED",
-                        fontSize = 11.sp, color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 10.sp, color = Color.White.copy(alpha = 0.65f),
                         fontFamily = SpaceMonoFamily
                     )
                 }
@@ -82,13 +82,13 @@ fun SafetyScreen(
             if (drives.isEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
-                        modifier = Modifier.fillMaxWidth().padding(28.dp),
+                        modifier = Modifier.fillMaxWidth().padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(Icons.Outlined.DirectionsCar, "No trips", Modifier.size(36.dp), tint = t.textFade)
-                        Spacer(Modifier.height(12.dp))
+                        Icon(Icons.Outlined.DirectionsCar, "No trips", Modifier.size(32.dp), tint = t.textFade)
+                        Spacer(Modifier.height(10.dp))
                         Text(
-                            "No trips yet", fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                            "No trips yet", fontSize = 15.sp, fontWeight = FontWeight.Bold,
                             color = t.text, fontFamily = OutfitFamily
                         )
                         Spacer(Modifier.height(4.dp))
@@ -106,23 +106,23 @@ fun SafetyScreen(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { onDriveClick(drive) }
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(14.dp)) {
                             // Route + time
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Box(
-                                    modifier = Modifier.size(38.dp)
-                                        .background(t.accentBg, RoundedCornerShape(12.dp)),
+                                    modifier = Modifier.size(36.dp)
+                                        .background(t.accentBg, RoundedCornerShape(11.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Outlined.DirectionsCar, "Drive", Modifier.size(18.dp), tint = t.accent)
+                                    Icon(Icons.Outlined.DirectionsCar, "Drive", Modifier.size(17.dp), tint = t.accent)
                                 }
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         "${drive.fromLocation} to ${drive.toLocation}",
-                                        fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp, fontWeight = FontWeight.Bold,
                                         color = t.text, fontFamily = OutfitFamily
                                     )
                                     Text(
@@ -131,7 +131,7 @@ fun SafetyScreen(
                                     )
                                 }
                             }
-                            Spacer(Modifier.height(12.dp))
+                            Spacer(Modifier.height(10.dp))
                             // Stats row
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -160,7 +160,7 @@ fun SafetyScreen(
 @Composable
 private fun TripStat(label: String, value: String, color: Color, t: com.haven.app.ui.theme.HavenColors) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontSize = 15.sp, fontWeight = FontWeight.Black, color = color, fontFamily = SpaceMonoFamily)
+        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Black, color = color, fontFamily = SpaceMonoFamily)
         Text(label, fontSize = 7.sp, fontWeight = FontWeight.Bold, color = t.textFade, fontFamily = SpaceMonoFamily, letterSpacing = 1.sp)
     }
 }

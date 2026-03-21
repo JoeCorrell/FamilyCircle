@@ -295,34 +295,34 @@ fun MapScreen(
                 val history by viewModel.selectedMemberHistory.collectAsStateWithLifecycle()
 
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Member info row
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Box(
-                            modifier = Modifier.size(48.dp)
-                                .background(memberColor.copy(alpha = 0.1f), RoundedCornerShape(15.dp))
-                                .border(2.5.dp, memberColor, RoundedCornerShape(15.dp)),
+                            modifier = Modifier.size(42.dp)
+                                .background(memberColor.copy(alpha = 0.1f), RoundedCornerShape(13.dp))
+                                .border(2.dp, memberColor, RoundedCornerShape(13.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             if (member.photoUrl.isNotEmpty()) {
                                 ProfileImage(photoUrl = member.photoUrl, contentDescription = member.name, contentScale = ContentScale.Crop,
-                                    modifier = Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)))
+                                    modifier = Modifier.size(36.dp).clip(RoundedCornerShape(11.dp)))
                             } else {
-                                Text(member.initials, fontSize = 19.sp, fontWeight = FontWeight.Black, color = memberColor, fontFamily = OutfitFamily)
+                                Text(member.initials, fontSize = 17.sp, fontWeight = FontWeight.Black, color = memberColor, fontFamily = OutfitFamily)
                             }
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(member.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                                Text(member.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
                                 Box(
                                     modifier = Modifier
                                         .background(if (member.speed > 0) t.warn.copy(alpha = 0.12f) else t.ok.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
-                                        .padding(horizontal = 7.dp, vertical = 2.dp)
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(member.status.displayName().uppercase(), fontSize = 8.sp, fontWeight = FontWeight.Bold,
                                         color = if (member.speed > 0) t.warn else t.ok, fontFamily = SpaceMonoFamily)
@@ -331,23 +331,23 @@ fun MapScreen(
                             Text(member.currentAddress.ifEmpty { "Unknown" }, fontSize = 11.sp, color = t.textMid, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         Box(
-                            modifier = Modifier.size(30.dp).background(if (t.isDark) t.surfaceAlt else t.bgSub, RoundedCornerShape(9.dp))
-                                .border(1.dp, t.border, RoundedCornerShape(9.dp)).clickable { viewModel.selectMember(null) },
+                            modifier = Modifier.size(28.dp).background(if (t.isDark) t.surfaceAlt else t.bgSub, RoundedCornerShape(8.dp))
+                                .border(1.dp, t.border, RoundedCornerShape(8.dp)).clickable { viewModel.selectMember(null) },
                             contentAlignment = Alignment.Center
-                        ) { Icon(Icons.Outlined.Close, "Close", Modifier.size(13.dp), tint = t.textFade) }
+                        ) { Icon(Icons.Outlined.Close, "Close", Modifier.size(12.dp), tint = t.textFade) }
                     }
 
                     // Stats
                     Row(
-                        modifier = Modifier.fillMaxWidth().background(if (t.isDark) t.surfaceAlt else t.bgSub, RoundedCornerShape(14.dp)).padding(vertical = 10.dp),
+                        modifier = Modifier.fillMaxWidth().background(if (t.isDark) t.surfaceAlt else t.bgSub, RoundedCornerShape(12.dp)).padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            BatteryIndicator(value = member.batteryLevel, size = 24.dp)
+                            BatteryIndicator(value = member.batteryLevel, size = 22.dp)
                             Text("${member.batteryLevel}%", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.textMid, fontFamily = SpaceMonoFamily)
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("${member.speed.toInt()}", fontSize = 20.sp, fontWeight = FontWeight.Black, color = if (member.speed > 0) t.warn else t.ok, fontFamily = SpaceMonoFamily)
+                            Text("${member.speed.toInt()}", fontSize = 18.sp, fontWeight = FontWeight.Black, color = if (member.speed > 0) t.warn else t.ok, fontFamily = SpaceMonoFamily)
                             Text("MPH", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -355,7 +355,7 @@ fun MapScreen(
                                 val m = ((System.currentTimeMillis() - member.lastSeenTimestamp) / 60000).toInt()
                                 when { m < 1 -> "Now"; m < 60 -> "${m}m"; else -> "${m / 60}h" }
                             }
-                            Text(seen, fontSize = 20.sp, fontWeight = FontWeight.Black, color = t.accent, fontFamily = SpaceMonoFamily)
+                            Text(seen, fontSize = 18.sp, fontWeight = FontWeight.Black, color = t.accent, fontFamily = SpaceMonoFamily)
                             Text("SEEN", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                         }
                     }
@@ -365,7 +365,7 @@ fun MapScreen(
                         Box(
                             modifier = Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
                                 .background(Brush.linearGradient(listOf(t.accent, t.accentMid)))
-                                .clickable { onMemberClick(member) }.padding(vertical = 10.dp),
+                                .clickable { onMemberClick(member) }.padding(vertical = 9.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -382,7 +382,7 @@ fun MapScreen(
                                         context.startActivity(Intent(Intent.ACTION_VIEW,
                                             Uri.parse("geo:${member.latitude},${member.longitude}?q=${member.latitude},${member.longitude}(${Uri.encode(member.name)})")))
                                     }
-                                }.padding(vertical = 10.dp),
+                                }.padding(vertical = 9.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -407,19 +407,19 @@ fun MapScreen(
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(6.dp))
 
             } ?: run {
                 // ── Member Cards Row (no selection) ──
                 LazyRow(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(members, key = { it.id }) { member ->
                         val mc = Color(member.color)
                         HavenCard(
-                            modifier = Modifier.width(80.dp),
-                            cornerRadius = 16.dp,
+                            modifier = Modifier.width(76.dp),
+                            cornerRadius = 14.dp,
                             onClick = {
                                 viewModel.selectMember(member)
                                 if (member.latitude != 0.0 || member.longitude != 0.0) {
@@ -428,29 +428,29 @@ fun MapScreen(
                             }
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(7.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Box(modifier = Modifier.size(48.dp)) {
+                                Box(modifier = Modifier.size(42.dp)) {
                                     if (member.photoUrl.isNotEmpty()) {
                                         ProfileImage(
                                             photoUrl = member.photoUrl, contentDescription = member.name,
                                             contentScale = ContentScale.Crop,
-                                            modifier = Modifier.size(48.dp).clip(RoundedCornerShape(14.dp)).border(2.5.dp, mc, RoundedCornerShape(14.dp))
+                                            modifier = Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).border(2.dp, mc, RoundedCornerShape(13.dp))
                                         )
                                     } else {
                                         Box(
-                                            modifier = Modifier.size(48.dp).background(mc.copy(alpha = 0.1f), RoundedCornerShape(14.dp)).border(2.5.dp, mc, RoundedCornerShape(14.dp)),
+                                            modifier = Modifier.size(42.dp).background(mc.copy(alpha = 0.1f), RoundedCornerShape(13.dp)).border(2.dp, mc, RoundedCornerShape(13.dp)),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(member.initials, fontSize = 18.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
+                                            Text(member.initials, fontSize = 16.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
                                         }
                                     }
                                     if (member.isOnline) {
-                                        Box(modifier = Modifier.align(Alignment.BottomEnd).size(12.dp).background(t.ok, CircleShape).border(2.dp, t.card, CircleShape))
+                                        Box(modifier = Modifier.align(Alignment.BottomEnd).size(10.dp).background(t.ok, CircleShape).border(2.dp, t.card, CircleShape))
                                     }
                                 }
-                                Spacer(Modifier.height(6.dp))
+                                Spacer(Modifier.height(5.dp))
                                 Text(member.name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1)
                             }
                         }

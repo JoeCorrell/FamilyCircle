@@ -147,7 +147,7 @@ fun ChatScreen(
                     .fillMaxWidth()
                     .background(t.card)
                     .border(1.dp, t.border)
-                    .padding(16.dp),
+                    .padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(
