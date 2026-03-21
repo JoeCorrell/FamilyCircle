@@ -5,6 +5,10 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.location.Geocoder
 import android.os.BatteryManager
 import android.os.IBinder
@@ -25,6 +29,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.sqrt
 
 @AndroidEntryPoint
 class LocationService : Service() {
@@ -59,12 +64,36 @@ class LocationService : Service() {
     private var cachedMemberName: String? = null
     // Track which members are at which places: placeId -> set of member names
     private var memberPlaceState = mutableMapOf<String, MutableSet<String>>()
+    // Crash detection
+    private var sensorManager: SensorManager? = null
+    private var crashSensorActive = false
+    private var crashDetectedTime = 0L
+    private var crashCountdownJob: Job? = null
+    private val CRASH_THRESHOLD_G = 4.0f  // 4G force = typical crash impact
+    private val CRASH_COUNTDOWN_MS = 60_000L  // 60 seconds before auto-SOS
+
+    private val crashListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+            if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
+            val x = event.values[0]
+            val y = event.values[1]
+            val z = event.values[2]
+            // Total acceleration magnitude (gravity is ~9.8 m/s², so subtract it)
+            val magnitude = sqrt(x * x + y * y + z * z) / SensorManager.GRAVITY_EARTH
+            if (magnitude > CRASH_THRESHOLD_G && wasDriving && crashDetectedTime == 0L) {
+                onCrashDetected()
+            }
+        }
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    }
 
     companion object {
         const val NOTIFICATION_ID = 1001
         const val SOS_NOTIFICATION_ID = 8888
+        const val CRASH_NOTIFICATION_ID = 8889
         const val ACTION_START = "com.haven.app.START_LOCATION"
         const val ACTION_STOP = "com.haven.app.STOP_LOCATION"
+        const val ACTION_CANCEL_CRASH = "com.haven.app.CANCEL_CRASH"
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -78,9 +107,13 @@ class LocationService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
+                stopCrashDetection()
                 stopLocationUpdates()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
+            }
+            ACTION_CANCEL_CRASH -> {
+                cancelCrashAlert()
             }
             else -> {
                 startForegroundNotification()
@@ -192,12 +225,14 @@ class LocationService : Service() {
                                     driveTopSpeed = speedMph
                                     driveHarshBrakes = 0
                                     notificationHelper.notifyDriveStarted(memberName)
+                                    startCrashDetection()
                                 }
                             } else {
                                 drivingConfirmCount = 0
                                 stoppedConfirmCount++
                                 if (wasDriving && stoppedConfirmCount >= 5) {
                                     wasDriving = false
+                                    stopCrashDetection()
                                     // Drive ended — record the trip
                                     val endTime = now
                                     val durationMin = ((endTime - driveStartTime) / 60000).toInt()
@@ -469,6 +504,77 @@ class LocationService : Service() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
+    private fun startCrashDetection() {
+        if (crashSensorActive) return
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        if (accelerometer != null) {
+            sensorManager?.registerListener(crashListener, accelerometer, SensorManager.SENSOR_DELAY_UI)
+            crashSensorActive = true
+        }
+    }
+
+    private fun stopCrashDetection() {
+        if (!crashSensorActive) return
+        sensorManager?.unregisterListener(crashListener)
+        crashSensorActive = false
+        crashCountdownJob?.cancel()
+        crashCountdownJob = null
+        crashDetectedTime = 0L
+    }
+
+    private fun onCrashDetected() {
+        crashDetectedTime = System.currentTimeMillis()
+        // Show a high-priority notification with 60s countdown
+        // If user doesn't cancel, auto-trigger SOS
+        val cancelIntent = Intent(this, LocationService::class.java).apply {
+            action = ACTION_CANCEL_CRASH
+        }
+        val cancelPendingIntent = android.app.PendingIntent.getService(
+            this, 99, cancelIntent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val crashNotif = NotificationCompat.Builder(this, HavenApp.SOS_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_sos)
+            .setContentTitle("Crash Detected")
+            .setContentText("Are you okay? SOS will be sent in 60 seconds")
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setAutoCancel(false)
+            .setOngoing(true)
+            .addAction(0, "I'M OK — CANCEL", cancelPendingIntent)
+            .setSound(android.net.Uri.parse("android.resource://$packageName/${R.raw.notification}"))
+            .setVibrate(longArrayOf(0, 500, 300, 500, 300, 500, 300, 500))
+            .build()
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            == PackageManager.PERMISSION_GRANTED) {
+            NotificationManagerCompat.from(this).notify(CRASH_NOTIFICATION_ID, crashNotif)
+        }
+
+        // Vibrate the phone
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 500, 300, 500, 300, 500), -1))
+
+        // Start 60s countdown — if not cancelled, trigger SOS
+        crashCountdownJob = serviceScope.launch {
+            delay(CRASH_COUNTDOWN_MS)
+            // User didn't cancel — auto-trigger SOS
+            val memberName = cachedMemberName ?: "Someone"
+            apiManager.activateSos(memberName, lastGeocodeLat, lastGeocodeLng)
+            NotificationManagerCompat.from(this@LocationService).cancel(CRASH_NOTIFICATION_ID)
+            crashDetectedTime = 0L
+        }
+    }
+
+    private fun cancelCrashAlert() {
+        crashCountdownJob?.cancel()
+        crashCountdownJob = null
+        crashDetectedTime = 0L
+        NotificationManagerCompat.from(this).cancel(CRASH_NOTIFICATION_ID)
+    }
+
     private fun calculateDriveScore(topSpeed: Float, harshBrakes: Int): Int {
         var score = 100
         if (topSpeed > 80) score -= 20 else if (topSpeed > 65) score -= 10
@@ -488,6 +594,7 @@ class LocationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        stopCrashDetection()
         stopLocationUpdates()
         // Mark offline before cancelling scope
         serviceScope.launch {
