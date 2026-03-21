@@ -57,8 +57,6 @@ fun HomeScreen(
     val places by viewModel.places.collectAsStateWithLifecycle()
     val notifications by viewModel.recentNotifications.collectAsStateWithLifecycle()
     val drivesCount by viewModel.drivesCount.collectAsStateWithLifecycle()
-    val familyName by viewModel.familyName.collectAsStateWithLifecycle()
-    val myHavens by viewModel.myHavens.collectAsStateWithLifecycle()
     val recentErrands by viewModel.recentErrands.collectAsStateWithLifecycle()
     val myRole by viewModel.myRole.collectAsStateWithLifecycle()
     val currentlyDriving by viewModel.currentlyDriving.collectAsStateWithLifecycle()
@@ -70,7 +68,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // ── Status + Haven Switcher (compact) ──
+        // ── Status bar ──
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -83,37 +81,6 @@ fun HomeScreen(
                 else "${members.count { it.isOnline }} of ${members.size} online",
                 fontSize = 10.sp, color = t.textMid, fontFamily = OutfitFamily
             )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            val activeId = viewModel.activeHavenId
-            if (myHavens.isNotEmpty()) {
-                myHavens.forEach { haven ->
-                    val isActive = haven.havenId == activeId
-                    Box(
-                        modifier = Modifier
-                            .background(if (isActive) t.accent.copy(alpha = 0.1f) else t.card, RoundedCornerShape(10.dp))
-                            .border(if (isActive) 1.5.dp else 1.dp, if (isActive) t.accent else t.border, RoundedCornerShape(10.dp))
-                            .clickable { viewModel.switchHaven(haven.havenId) }
-                            .padding(horizontal = 12.dp, vertical = 5.dp)
-                    ) {
-                        Text(haven.havenName, fontSize = 10.sp, fontWeight = FontWeight.Bold,
-                            color = if (isActive) t.accent else t.textMid, fontFamily = OutfitFamily)
-                    }
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .background(t.accent.copy(alpha = 0.1f), RoundedCornerShape(10.dp))
-                        .border(1.5.dp, t.accent, RoundedCornerShape(10.dp))
-                        .padding(horizontal = 12.dp, vertical = 5.dp)
-                ) {
-                    Text(familyName, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = OutfitFamily)
-                }
-            }
         }
 
         // ── Scrollable content ──
