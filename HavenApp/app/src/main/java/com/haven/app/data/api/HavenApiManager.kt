@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -69,7 +70,15 @@ class HavenApiManager @Inject constructor(
             if (resp.isSuccessful && resp.body() != null) {
                 val me = resp.body()!!
                 if (me.havenId != null) {
-                    tokenStore.saveAuth(token, me.id, me.havenId)
+                    // Preserve the user's selected haven if they already have one cached
+                    val currentHaven = tokenStore.getHavenId()
+                    val validHavenIds = me.havens.map { it.havenId }
+                    val havenToUse = if (currentHaven != null && currentHaven in validHavenIds) {
+                        currentHaven // Keep current selection
+                    } else {
+                        me.havenId // Fall back to server default
+                    }
+                    tokenStore.saveAuth(token, me.id, havenToUse)
                     AuthState.READY
                 } else {
                     AuthState.NO_HAVEN
@@ -79,7 +88,6 @@ class HavenApiManager @Inject constructor(
                 AuthState.SIGNED_OUT
             }
         } catch (e: Exception) {
-            // Network error - check if we have cached haven ID
             if (tokenStore.getHavenId() != null) AuthState.READY
             else AuthState.SIGNED_OUT
         }
@@ -176,8 +184,18 @@ class HavenApiManager @Inject constructor(
 
     // ── Members (polling-based flow) ──
 
+    // Refresh triggers — poke these to force an immediate re-fetch
+    private val _refreshMembers = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val _refreshMessages = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val _refreshPlaces = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val _refreshNotifications = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val _refreshErrands = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val _refreshDrives = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val _refreshCheckins = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
     private fun <T> pollingFlow(
         intervalMs: Long,
+        refreshTrigger: MutableSharedFlow<Unit>? = null,
         fetch: suspend (havenId: String) -> retrofit2.Response<List<T>>
     ): Flow<List<T>> = flow {
         var firstLoad = true
@@ -189,11 +207,17 @@ class HavenApiManager @Inject constructor(
                     if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
                 } catch (_: Exception) {}
             }
-            delay(if (firstLoad) 1000L else intervalMs)
+            if (refreshTrigger != null) {
+                withTimeoutOrNull(if (firstLoad) 1000L else intervalMs) {
+                    refreshTrigger.first()
+                }
+            } else {
+                delay(if (firstLoad) 1000L else intervalMs)
+            }
         }
     }.distinctUntilChanged()
 
-    private val _members = pollingFlow(5000) { api.getMembers(it) }
+    private val _members = pollingFlow(5000, _refreshMembers) { api.getMembers(it) }
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun observeMembers(): Flow<List<MemberData>> = _members
@@ -206,7 +230,7 @@ class HavenApiManager @Inject constructor(
     }
 
     suspend fun updateMyMember(fields: Map<String, Any>) {
-        try { api.updateMyMember(fields) } catch (_: Exception) {}
+        try { api.updateMyMember(fields); _refreshMembers.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     suspend fun updateLocation(update: LocationUpdate) {
@@ -219,36 +243,36 @@ class HavenApiManager @Inject constructor(
 
     // ── Messages (polling-based flow) ──
 
-    private val _messages = pollingFlow(3000) { api.getMessages(it) }
+    private val _messages = pollingFlow(3000, _refreshMessages) { api.getMessages(it) }
         .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
     fun observeMessages(): Flow<List<MessageData>> = _messages
 
     suspend fun sendMessage(senderName: String, text: String) {
         val hid = tokenStore.getHavenId() ?: return
-        try { api.sendMessage(hid, SendMessageRequest(senderName, text)) } catch (_: Exception) {}
+        try { api.sendMessage(hid, SendMessageRequest(senderName, text)); _refreshMessages.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     // ── Places (polling-based flow) ──
 
-    private val _places = pollingFlow(10000) { api.getPlaces(it) }
+    private val _places = pollingFlow(10000, _refreshPlaces) { api.getPlaces(it) }
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun observePlaces(): Flow<List<PlaceData>> = _places
 
     suspend fun createPlace(request: CreatePlaceRequest) {
         val hid = tokenStore.getHavenId() ?: return
-        try { api.createPlace(hid, request) } catch (_: Exception) {}
+        try { api.createPlace(hid, request); _refreshPlaces.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     suspend fun deletePlace(placeId: String) {
         val hid = tokenStore.getHavenId() ?: return
-        try { api.deletePlace(hid, placeId) } catch (_: Exception) {}
+        try { api.deletePlace(hid, placeId); _refreshPlaces.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     // ── Notifications (polling-based flow) ──
 
-    private val _notifications = pollingFlow(15000) { api.getNotifications(it) }
+    private val _notifications = pollingFlow(15000, _refreshNotifications) { api.getNotifications(it) }
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun observeNotifications(): Flow<List<NotificationData>> = _notifications
@@ -260,48 +284,48 @@ class HavenApiManager @Inject constructor(
 
     // ── Errands ──
 
-    private val _errands = pollingFlow(5000) { api.getErrands(it) }
+    private val _errands = pollingFlow(5000, _refreshErrands) { api.getErrands(it) }
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun observeErrands(): Flow<List<ErrandData>> = _errands
 
     suspend fun createErrand(senderName: String, item: String, address: String = "", note: String = "") {
         val hid = tokenStore.getHavenId() ?: return
-        try { api.createErrand(hid, CreateErrandRequest(senderName, item, address, note)) } catch (_: Exception) {}
+        try { api.createErrand(hid, CreateErrandRequest(senderName, item, address, note)); _refreshErrands.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     suspend fun acceptErrand(errandId: String, acceptedName: String) {
         val hid = tokenStore.getHavenId() ?: return
-        try { api.acceptErrand(hid, errandId, AcceptErrandRequest(acceptedName)) } catch (_: Exception) {}
+        try { api.acceptErrand(hid, errandId, AcceptErrandRequest(acceptedName)); _refreshErrands.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     suspend fun completeErrand(errandId: String) {
         val hid = tokenStore.getHavenId() ?: return
-        try { api.completeErrand(hid, errandId) } catch (_: Exception) {}
+        try { api.completeErrand(hid, errandId); _refreshErrands.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     suspend fun declineErrand(errandId: String) {
         val hid = tokenStore.getHavenId() ?: return
-        try { api.declineErrand(hid, errandId) } catch (_: Exception) {}
+        try { api.declineErrand(hid, errandId); _refreshErrands.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     // ── Drives (polling-based flow) ──
 
-    private val _drives = pollingFlow(10000) { api.getDrives(it) }
+    private val _drives = pollingFlow(10000, _refreshDrives) { api.getDrives(it) }
         .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
     fun observeDrives(): Flow<List<DriveData>> = _drives
 
     // ── Check-ins (polling-based flow) ──
 
-    private val _checkins = pollingFlow(10000) { api.getCheckins(it) }
+    private val _checkins = pollingFlow(10000, _refreshCheckins) { api.getCheckins(it) }
         .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
     fun observeCheckins(): Flow<List<CheckinData>> = _checkins
 
     suspend fun createCheckin(senderName: String, emoji: String, message: String = "") {
         val hid = tokenStore.getHavenId() ?: return
-        try { api.createCheckin(hid, CreateCheckinRequest(senderName, emoji, message)) } catch (_: Exception) {}
+        try { api.createCheckin(hid, CreateCheckinRequest(senderName, emoji, message)); _refreshCheckins.tryEmit(Unit) } catch (_: Exception) {}
     }
 
     // ── SOS ──
