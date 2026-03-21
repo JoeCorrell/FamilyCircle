@@ -44,6 +44,14 @@ class LocationService : Service() {
     private var drivingConfirmCount = 0
     private var stoppedConfirmCount = 0
     private var wasDriving = false
+    // Drive tracking state
+    private var driveStartTime = 0L
+    private var driveStartAddress = ""
+    private var driveStartLat = 0.0
+    private var driveStartLng = 0.0
+    private var driveTopSpeed = 0f
+    private var driveHarshBrakes = 0
+    private var lastSpeed = 0f
     private var lastNotifTimestamp = 0L
     private var lastMessageCount = -1
     private var lastSosState = false
@@ -158,15 +166,31 @@ class LocationService : Service() {
                                 notificationHelper.notifySpeedAlert(memberName, speedMph.toInt())
                             }
 
+                            // Detect harsh braking (speed drop > 15 mph between updates)
+                            if (lastSpeed - speedMph > 15 && wasDriving) {
+                                driveHarshBrakes++
+                            }
+                            lastSpeed = speedMph
+
+                            // Track top speed during drive
+                            if (wasDriving && speedMph > driveTopSpeed) {
+                                driveTopSpeed = speedMph
+                            }
+
                             // Require 3 consecutive DRIVING readings before confirming drive
                             // and 5 consecutive non-DRIVING readings before confirming stop
-                            // Prevents notification spam from GPS speed fluctuations
                             if (status == MemberStatus.DRIVING) {
                                 drivingConfirmCount++
                                 stoppedConfirmCount = 0
                                 if (!wasDriving && drivingConfirmCount >= 3 && now - lastDriveNotifTime > 5 * 60 * 1000) {
                                     wasDriving = true
                                     lastDriveNotifTime = now
+                                    driveStartTime = now
+                                    driveStartAddress = address
+                                    driveStartLat = location.latitude
+                                    driveStartLng = location.longitude
+                                    driveTopSpeed = speedMph
+                                    driveHarshBrakes = 0
                                     notificationHelper.notifyDriveStarted(memberName)
                                 }
                             } else {
@@ -174,6 +198,32 @@ class LocationService : Service() {
                                 stoppedConfirmCount++
                                 if (wasDriving && stoppedConfirmCount >= 5) {
                                     wasDriving = false
+                                    // Drive ended — record the trip
+                                    val endTime = now
+                                    val durationMin = ((endTime - driveStartTime) / 60000).toInt()
+                                    if (durationMin >= 1) {
+                                        val distMiles = haversineMeters(
+                                            driveStartLat, driveStartLng,
+                                            location.latitude, location.longitude
+                                        ).toFloat() / 1609.34f
+                                        val score = calculateDriveScore(driveTopSpeed, driveHarshBrakes)
+                                        val myMember = apiManager.getMyMember()
+                                        apiManager.createDrive(
+                                            com.haven.app.data.api.CreateDriveRequest(
+                                                memberId = myMember?.id ?: "",
+                                                memberName = memberName,
+                                                startTime = driveStartTime,
+                                                endTime = endTime,
+                                                fromLocation = driveStartAddress,
+                                                toLocation = address,
+                                                distanceMiles = distMiles,
+                                                durationMinutes = durationMin,
+                                                topSpeedMph = driveTopSpeed,
+                                                harshBrakes = driveHarshBrakes,
+                                                score = score
+                                            )
+                                        )
+                                    }
                                 }
                             }
 
@@ -417,6 +467,13 @@ class LocationService : Service() {
 
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    private fun calculateDriveScore(topSpeed: Float, harshBrakes: Int): Int {
+        var score = 100
+        if (topSpeed > 80) score -= 20 else if (topSpeed > 65) score -= 10
+        score -= (harshBrakes * 8).coerceAtMost(40)
+        return score.coerceIn(0, 100)
     }
 
     private fun haversineMeters(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {

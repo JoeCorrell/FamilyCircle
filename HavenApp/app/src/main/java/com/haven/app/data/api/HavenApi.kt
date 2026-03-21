@@ -94,6 +94,15 @@ data class CheckinData(
 
 data class CreateCheckinRequest(val senderName: String, val emoji: String, val message: String = "")
 
+data class CreateDriveRequest(
+    val memberId: String, val memberName: String,
+    val startTime: Long, val endTime: Long,
+    val fromLocation: String, val toLocation: String,
+    val distanceMiles: Float = 0f, val durationMinutes: Int = 0,
+    val topSpeedMph: Float = 0f, val harshBrakes: Int = 0,
+    val score: Int = 100
+)
+
 data class SosRequest(
     val senderName: String, val latitude: Double,
     val longitude: Double, val message: String
@@ -207,6 +216,9 @@ interface HavenApi {
     // Drives
     @GET("api/drives/{havenId}")
     suspend fun getDrives(@Path("havenId") havenId: String): Response<List<DriveData>>
+
+    @POST("api/drives/{havenId}")
+    suspend fun createDrive(@Path("havenId") havenId: String, @Body body: CreateDriveRequest): Response<DriveData>
 
     // Check-ins
     @GET("api/checkins/{havenId}")

@@ -324,6 +324,11 @@ class HavenApiManager @Inject constructor(
 
     fun observeDrives(): Flow<List<DriveData>> = _drives
 
+    suspend fun createDrive(request: CreateDriveRequest) {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.createDrive(hid, request); _refreshDrives.tryEmit(Unit) } catch (_: Exception) {}
+    }
+
     // ── Check-ins (polling-based flow) ──
 
     private val _checkins = pollingFlow(10000, _refreshCheckins) { api.getCheckins(it) }
