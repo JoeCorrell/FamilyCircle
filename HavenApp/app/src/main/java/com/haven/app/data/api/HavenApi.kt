@@ -70,11 +70,29 @@ data class ErrandData(
     val senderName: String = "", val item: String = "", val address: String = "",
     val note: String = "", val status: String = "PENDING",
     val acceptedBy: String? = null, val acceptedName: String? = null,
+    val completedAt: Double? = null,
     val timestamp: Double = 0.0
 )
 
 data class CreateErrandRequest(val senderName: String, val item: String, val address: String = "", val note: String = "")
 data class AcceptErrandRequest(val acceptedName: String)
+
+data class DriveData(
+    val id: String = "", val havenId: String = "", val memberId: String = "",
+    val memberName: String = "", val startTime: Double = 0.0, val endTime: Double? = null,
+    val fromLocation: String = "", val toLocation: String = "",
+    val score: Int = 100, val distanceMiles: Double = 0.0,
+    val durationMinutes: Int = 0, val topSpeedMph: Double = 0.0,
+    val harshBrakes: Int = 0
+)
+
+data class CheckinData(
+    val id: String = "", val havenId: String = "", val senderUid: String = "",
+    val senderName: String = "", val emoji: String = "", val message: String = "",
+    val timestamp: Double = 0.0
+)
+
+data class CreateCheckinRequest(val senderName: String, val emoji: String, val message: String = "")
 
 data class SosRequest(
     val senderName: String, val latitude: Double,
@@ -179,6 +197,23 @@ interface HavenApi {
 
     @POST("api/errands/{havenId}/{errandId}/accept")
     suspend fun acceptErrand(@Path("havenId") havenId: String, @Path("errandId") errandId: String, @Body body: AcceptErrandRequest): Response<ErrandData>
+
+    @POST("api/errands/{havenId}/{errandId}/complete")
+    suspend fun completeErrand(@Path("havenId") havenId: String, @Path("errandId") errandId: String): Response<ErrandData>
+
+    @POST("api/errands/{havenId}/{errandId}/decline")
+    suspend fun declineErrand(@Path("havenId") havenId: String, @Path("errandId") errandId: String): Response<Map<String, Boolean>>
+
+    // Drives
+    @GET("api/drives/{havenId}")
+    suspend fun getDrives(@Path("havenId") havenId: String): Response<List<DriveData>>
+
+    // Check-ins
+    @GET("api/checkins/{havenId}")
+    suspend fun getCheckins(@Path("havenId") havenId: String): Response<List<CheckinData>>
+
+    @POST("api/checkins/{havenId}")
+    suspend fun createCheckin(@Path("havenId") havenId: String, @Body body: CreateCheckinRequest): Response<CheckinData>
 
     // SOS
     @POST("api/sos/{havenId}")

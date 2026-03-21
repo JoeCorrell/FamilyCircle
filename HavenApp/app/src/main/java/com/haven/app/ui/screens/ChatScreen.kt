@@ -19,9 +19,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,6 +43,7 @@ import com.haven.app.ui.theme.LocalHavenColors
 import com.haven.app.ui.theme.OutfitFamily
 import com.haven.app.ui.theme.SpaceMonoFamily
 import com.haven.app.ui.viewmodel.ChatViewModel
+import java.util.Calendar
 
 @Composable
 fun ChatScreen(
@@ -59,6 +68,9 @@ fun ChatScreen(
     var errandAddr by remember { mutableStateOf("") }
     var errandNote by remember { mutableStateOf("") }
 
+    // Group messages for display
+    val groupedMessages = remember(messages) { groupMessages(messages) }
+
     Column(modifier = Modifier.fillMaxSize().imePadding()) {
         // ── Errands Banner ──
         val pendingErrands = errands.filter { it.status == "PENDING" && it.id !in dismissedErrandIds }
@@ -77,21 +89,8 @@ fun ChatScreen(
                     ErrandCard(errand, viewModel, t) { viewModel.dismissErrand(errand.id) }
                 }
                 items(acceptedErrands, key = { "ea_${it.id}" }) { errand ->
-                    AcceptedErrandCard(errand, t) { viewModel.dismissErrand(errand.id) }
+                    AcceptedErrandCard(errand, viewModel, t) { viewModel.dismissErrand(errand.id) }
                 }
-            }
-        }
-
-        // ── Date Divider ──
-        if (messages.isNotEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Box(modifier = Modifier.weight(1f).height(1.dp).background(t.border))
-                Text("TODAY", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.textFade, fontFamily = SpaceMonoFamily, letterSpacing = 1.sp)
-                Box(modifier = Modifier.weight(1f).height(1.dp).background(t.border))
             }
         }
 
@@ -101,11 +100,39 @@ fun ChatScreen(
                 .weight(1f)
                 .padding(horizontal = 14.dp),
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            contentPadding = PaddingValues(bottom = 6.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            contentPadding = PaddingValues(bottom = 6.dp, top = 6.dp)
         ) {
-            items(messages, key = { "${it.timestamp}_${it.senderName}" }) { message ->
-                MessageBubble(message, memberColors, t)
+            groupedMessages.forEach { item ->
+                when (item) {
+                    is ChatItem.DateHeader -> {
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(modifier = Modifier.weight(1f).height(1.dp).background(t.border))
+                                Text(
+                                    item.label, fontSize = 9.sp, fontWeight = FontWeight.Bold,
+                                    color = t.textFade, fontFamily = SpaceMonoFamily, letterSpacing = 1.sp
+                                )
+                                Box(modifier = Modifier.weight(1f).height(1.dp).background(t.border))
+                            }
+                        }
+                    }
+                    is ChatItem.MessageItem -> {
+                        item(key = "${item.message.timestamp}_${item.message.senderName}") {
+                            MessageBubble(
+                                message = item.message,
+                                memberColors = memberColors,
+                                t = t,
+                                showAvatar = item.showAvatar,
+                                showName = item.showName
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -129,7 +156,10 @@ fun ChatScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.Assignment, "Errand", Modifier.size(18.dp), tint = t.warn)
+                        Box(
+                            modifier = Modifier.size(18.dp)
+                                .drawBehind { drawErrandIcon(t.warn) }
+                        )
                         Text("New Errand", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
                     }
                     IconButton(onClick = { errandMode = false }, modifier = Modifier.size(32.dp)) {
@@ -197,7 +227,10 @@ fun ChatScreen(
                         .clickable { errandMode = true },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Outlined.Assignment, "Errand", Modifier.size(18.dp), tint = t.warn)
+                    Box(
+                        modifier = Modifier.size(18.dp)
+                            .drawBehind { drawErrandIcon(t.warn) }
+                    )
                 }
 
                 // Text input
@@ -241,6 +274,58 @@ fun ChatScreen(
     }
 }
 
+// ── Message Grouping Logic ──
+
+private sealed class ChatItem {
+    data class DateHeader(val label: String) : ChatItem()
+    data class MessageItem(val message: Message, val showAvatar: Boolean, val showName: Boolean) : ChatItem()
+}
+
+private fun groupMessages(messages: List<Message>): List<ChatItem> {
+    if (messages.isEmpty()) return emptyList()
+    val items = mutableListOf<ChatItem>()
+    var lastDateLabel = ""
+    var lastSender = ""
+    var lastTimestamp = 0L
+
+    messages.forEach { message ->
+        val dateLabel = getDateLabel(message.timestamp)
+        if (dateLabel != lastDateLabel) {
+            items.add(ChatItem.DateHeader(dateLabel))
+            lastDateLabel = dateLabel
+            lastSender = ""
+            lastTimestamp = 0
+        }
+
+        val sameSender = message.senderName == lastSender && !message.isFromCurrentUser == !(messages.firstOrNull { it.senderName == lastSender }?.isFromCurrentUser ?: false)
+        val withinWindow = (message.timestamp - lastTimestamp) < 120_000 // 2 minutes
+        val showAvatar = !message.isFromCurrentUser && !(sameSender && withinWindow)
+        val showName = !message.isFromCurrentUser && !(sameSender && withinWindow)
+
+        items.add(ChatItem.MessageItem(message, showAvatar, showName))
+        lastSender = message.senderName
+        lastTimestamp = message.timestamp
+    }
+    return items
+}
+
+private fun getDateLabel(timestamp: Long): String {
+    val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
+    val today = Calendar.getInstance()
+    val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
+
+    return when {
+        cal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR) -> "TODAY"
+        cal.get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
+                cal.get(Calendar.DAY_OF_YEAR) == yesterday.get(Calendar.DAY_OF_YEAR) -> "YESTERDAY"
+        else -> {
+            val month = cal.getDisplayName(Calendar.MONTH, Calendar.SHORT, java.util.Locale.getDefault())?.uppercase() ?: ""
+            "$month ${cal.get(Calendar.DAY_OF_MONTH)}"
+        }
+    }
+}
+
 @Composable
 private fun errandFieldColors(t: HavenColors) = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = t.warn.copy(alpha = 0.3f),
@@ -251,24 +336,31 @@ private fun errandFieldColors(t: HavenColors) = OutlinedTextFieldDefaults.colors
 )
 
 @Composable
-private fun MessageBubble(message: Message, memberColors: Map<String, Long>, t: HavenColors) {
+private fun MessageBubble(
+    message: Message, memberColors: Map<String, Long>, t: HavenColors,
+    showAvatar: Boolean = true, showName: Boolean = true
+) {
     val isMe = message.isFromCurrentUser
     val senderColor = Color(memberColors[message.senderName] ?: 0xFF999999)
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = if (showAvatar) 2.dp else 0.dp),
         horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Bottom
     ) {
         // Avatar for others
         if (!isMe) {
-            Box(
-                modifier = Modifier.size(32.dp)
-                    .background(senderColor.copy(alpha = 0.12f), CircleShape)
-                    .border(2.dp, senderColor, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(message.senderName.take(1), fontSize = 13.sp, fontWeight = FontWeight.Black, color = senderColor, fontFamily = OutfitFamily)
+            if (showAvatar) {
+                Box(
+                    modifier = Modifier.size(32.dp)
+                        .background(senderColor.copy(alpha = 0.12f), CircleShape)
+                        .border(2.dp, senderColor, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(message.senderName.take(1), fontSize = 13.sp, fontWeight = FontWeight.Black, color = senderColor, fontFamily = OutfitFamily)
+                }
+            } else {
+                Spacer(Modifier.width(32.dp))
             }
             Spacer(Modifier.width(8.dp))
         }
@@ -278,18 +370,19 @@ private fun MessageBubble(message: Message, memberColors: Map<String, Long>, t: 
             modifier = Modifier.widthIn(max = 280.dp)
                 .clip(RoundedCornerShape(
                     topStart = 20.dp, topEnd = 20.dp,
-                    bottomStart = if (isMe) 20.dp else 4.dp,
-                    bottomEnd = if (isMe) 4.dp else 20.dp
+                    bottomStart = if (isMe) 20.dp else if (showAvatar) 4.dp else 16.dp,
+                    bottomEnd = if (isMe) if (showAvatar) 4.dp else 16.dp else 20.dp
                 ))
                 .then(
                     if (isMe) Modifier.background(Brush.linearGradient(listOf(t.accent, t.accentMid)))
                     else Modifier.background(t.card).border(1.dp, t.border, RoundedCornerShape(
-                        topStart = 20.dp, topEnd = 20.dp, bottomStart = 4.dp, bottomEnd = 20.dp
+                        topStart = 20.dp, topEnd = 20.dp,
+                        bottomStart = if (showAvatar) 4.dp else 16.dp, bottomEnd = 20.dp
                     ))
                 )
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            if (!isMe) {
+            if (!isMe && showName) {
                 Text(
                     message.senderName, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                     color = senderColor, fontFamily = OutfitFamily
@@ -350,7 +443,12 @@ private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: Cha
                 Box(
                     modifier = Modifier.size(40.dp).background(t.warn.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
-                ) { Icon(Icons.Outlined.Assignment, "Errand", Modifier.size(20.dp), tint = t.warn) }
+                ) {
+                    Box(
+                        modifier = Modifier.size(20.dp)
+                            .drawBehind { drawErrandIcon(t.warn) }
+                    )
+                }
                 Column(modifier = Modifier.weight(1f)) {
                     Text("ERRAND", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.warn, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp)
                     Text(errand.item, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -391,7 +489,8 @@ private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: Cha
                         Box(
                             modifier = Modifier.weight(1f).height(40.dp).clip(RoundedCornerShape(12.dp))
                                 .background(if (t.isDark) t.surfaceAlt else t.bgSub)
-                                .border(1.dp, t.border, RoundedCornerShape(12.dp)),
+                                .border(1.dp, t.border, RoundedCornerShape(12.dp))
+                                .clickable { onDismiss() },
                             contentAlignment = Alignment.Center
                         ) {
                             Text("Can't", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = t.textMid, fontFamily = OutfitFamily)
@@ -405,7 +504,7 @@ private fun ErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: Cha
 }
 
 @Composable
-private fun AcceptedErrandCard(errand: com.haven.app.data.api.ErrandData, t: HavenColors, onDismiss: () -> Unit) {
+private fun AcceptedErrandCard(errand: com.haven.app.data.api.ErrandData, viewModel: ChatViewModel, t: HavenColors, onDismiss: () -> Unit) {
     SwipeDismissible(onDismiss) {
         HavenCard(modifier = Modifier.fillMaxWidth()) {
             Row(
@@ -423,7 +522,40 @@ private fun AcceptedErrandCard(errand: com.haven.app.data.api.ErrandData, t: Hav
                     Text(errand.item, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily)
                     Text("${errand.acceptedName ?: "Someone"} is on it", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.ok, fontFamily = SpaceMonoFamily)
                 }
+                // Complete button
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(t.ok.copy(alpha = 0.1f))
+                        .border(1.dp, t.ok.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                        .clickable { viewModel.completeErrand(errand.id) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text("Done", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.ok, fontFamily = SpaceMonoFamily)
+                }
             }
         }
     }
+}
+
+// ── Custom drawn icons ──
+
+private fun DrawScope.drawErrandIcon(color: Color) {
+    val w = size.width; val h = size.height
+    val s = Stroke(width = w * 0.09f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+    // Clipboard body
+    drawRoundRect(color, Offset(w * 0.14f, h * 0.22f),
+        Size(w * 0.72f, h * 0.72f),
+        cornerRadius = CornerRadius(w * 0.1f), style = s)
+    // Clipboard clip top
+    drawRoundRect(color, Offset(w * 0.3f, h * 0.06f),
+        Size(w * 0.4f, h * 0.22f),
+        cornerRadius = CornerRadius(w * 0.08f), style = s)
+    // Checkmark inside
+    val check = Path().apply {
+        moveTo(w * 0.3f, h * 0.56f)
+        lineTo(w * 0.44f, h * 0.7f)
+        lineTo(w * 0.7f, h * 0.44f)
+    }
+    drawPath(check, color, style = Stroke(width = w * 0.1f, cap = StrokeCap.Round, join = StrokeJoin.Round))
 }

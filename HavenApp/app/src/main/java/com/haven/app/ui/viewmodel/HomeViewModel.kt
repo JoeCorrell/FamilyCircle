@@ -2,10 +2,12 @@ package com.haven.app.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.haven.app.data.api.CheckinData
 import com.haven.app.data.api.ErrandData
 import com.haven.app.data.api.HavenApiManager
 import com.haven.app.data.api.HavenInfo
 import com.haven.app.data.api.toFamilyMember
+import com.haven.app.data.api.toDrive
 import com.haven.app.data.model.FamilyMember
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -30,7 +32,10 @@ class HomeViewModel @Inject constructor(
         .map { list -> list.take(3).map { NotifData(it.title, it.color, it.timestamp) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val drivesCount: StateFlow<Int> = MutableStateFlow(0)
+    val drivesCount: StateFlow<Int> = apiManager.observeDrives()
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     val unreadCount: StateFlow<Int> = MutableStateFlow(0)
 
     val familyName: StateFlow<String> = flow {
@@ -41,13 +46,27 @@ class HomeViewModel @Inject constructor(
         .map { it.take(3) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Currently driving members (speed > 15 mph)
+    val currentlyDriving: StateFlow<List<FamilyMember>> = members
+        .map { list -> list.filter { it.speed > 15f } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Recent check-ins
+    val recentCheckins: StateFlow<List<CheckinData>> = apiManager.observeCheckins()
+        .map { it.take(3) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Member colors for check-in display
+    val memberColors: StateFlow<Map<String, Long>> = apiManager.observeMembers()
+        .map { members -> members.associate { it.name to it.colorAsLong() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     private val _havens = MutableStateFlow<List<HavenInfo>>(emptyList())
     val myHavens: StateFlow<List<HavenInfo>> = _havens.asStateFlow()
 
     val activeHavenId: String? get() = apiManager.havenId
 
     init {
-        // Poll haven list
         viewModelScope.launch {
             while (true) {
                 try {
@@ -57,7 +76,6 @@ class HomeViewModel @Inject constructor(
                 delay(5000)
             }
         }
-        // SOS state is managed by LocationService polling — HomeViewModel just observes
     }
 
     val myRole: StateFlow<String> = apiManager.observeMyMember()

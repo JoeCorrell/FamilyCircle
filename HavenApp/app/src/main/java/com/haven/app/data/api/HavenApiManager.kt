@@ -268,6 +268,29 @@ class HavenApiManager @Inject constructor(
         try { api.acceptErrand(hid, errandId, AcceptErrandRequest(acceptedName)) } catch (_: Exception) {}
     }
 
+    suspend fun completeErrand(errandId: String) {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.completeErrand(hid, errandId) } catch (_: Exception) {}
+    }
+
+    suspend fun declineErrand(errandId: String) {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.declineErrand(hid, errandId) } catch (_: Exception) {}
+    }
+
+    // ── Drives (polling-based flow) ──
+
+    fun observeDrives(): Flow<List<DriveData>> = pollingFlow(10000) { api.getDrives(it) }
+
+    // ── Check-ins (polling-based flow) ──
+
+    fun observeCheckins(): Flow<List<CheckinData>> = pollingFlow(10000) { api.getCheckins(it) }
+
+    suspend fun createCheckin(senderName: String, emoji: String, message: String = "") {
+        val hid = tokenStore.getHavenId() ?: return
+        try { api.createCheckin(hid, CreateCheckinRequest(senderName, emoji, message)) } catch (_: Exception) {}
+    }
+
     // ── SOS ──
 
     suspend fun activateSos(senderName: String, lat: Double, lng: Double) {

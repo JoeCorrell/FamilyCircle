@@ -92,5 +92,18 @@ class ChatViewModel @Inject constructor(
 
     fun dismissErrand(id: String) {
         _dismissedErrandIds.value = _dismissedErrandIds.value + id
+        viewModelScope.launch {
+            val errand = errands.value.firstOrNull { it.id == id }
+            if (errand?.status == "ACCEPTED") {
+                apiManager.completeErrand(id)
+            } else {
+                apiManager.declineErrand(id)
+            }
+        }
+    }
+
+    fun completeErrand(id: String) {
+        _dismissedErrandIds.value = _dismissedErrandIds.value + id
+        viewModelScope.launch { apiManager.completeErrand(id) }
     }
 }

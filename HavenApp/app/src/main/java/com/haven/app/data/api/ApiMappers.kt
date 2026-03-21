@@ -1,5 +1,6 @@
 package com.haven.app.data.api
 
+import com.haven.app.data.model.Drive
 import com.haven.app.data.model.FamilyMember
 import com.haven.app.data.model.MemberStatus
 
@@ -22,4 +23,19 @@ fun MemberData.toFamilyMember(): FamilyMember = FamilyMember(
     role = role,
     ringPosition = ringPosition.toFloat(),
     angle = angle.toFloat()
+)
+
+fun DriveData.toDrive(): Drive = Drive(
+    id = id.hashCode().toLong(),
+    memberId = memberId.hashCode().toLong(),
+    memberName = memberName,
+    startTime = startTime.toLong(),
+    endTime = endTime?.toLong() ?: 0L,
+    fromLocation = fromLocation,
+    toLocation = toLocation,
+    score = score,
+    distanceMiles = distanceMiles.toFloat(),
+    durationMinutes = durationMinutes,
+    topSpeedMph = topSpeedMph.toInt(),
+    harshBrakes = harshBrakes
 )

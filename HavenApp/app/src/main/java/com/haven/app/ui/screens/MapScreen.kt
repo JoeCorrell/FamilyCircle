@@ -61,6 +61,7 @@ fun MapScreen(
     val members by viewModel.members.collectAsStateWithLifecycle()
     val places by viewModel.places.collectAsStateWithLifecycle()
     val selectedMember by viewModel.selectedMember.collectAsStateWithLifecycle()
+    val memberTrail by viewModel.selectedMemberTrail.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     val hasLocationPermission = ContextCompat.checkSelfPermission(
@@ -131,8 +132,43 @@ fun MapScreen(
                             ) {
                                 Box(modifier = Modifier.size(6.dp).background(placeColor, CircleShape))
                                 Text(place.name, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = placeColor, fontFamily = SpaceMonoFamily)
+                                if (place.membersPresent > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(16.dp)
+                                            .background(placeColor, CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            "${place.membersPresent}",
+                                            fontSize = 8.sp, fontWeight = FontWeight.Black,
+                                            color = Color.White, fontFamily = SpaceMonoFamily
+                                        )
+                                    }
+                                }
                             }
                         }
+                    }
+                }
+
+                // Location trail polyline for selected member
+                if (memberTrail.size >= 2) {
+                    val trailColor = selectedMember?.let { Color(it.color) } ?: t.accent
+                    Polyline(
+                        points = memberTrail,
+                        color = trailColor.copy(alpha = 0.6f),
+                        width = 6f,
+                        geodesic = true
+                    )
+                    // Trail endpoint dots
+                    memberTrail.forEach { point ->
+                        Circle(
+                            center = point,
+                            radius = 8.0,
+                            fillColor = trailColor.copy(alpha = 0.4f),
+                            strokeColor = trailColor,
+                            strokeWidth = 2f
+                        )
                     }
                 }
 
