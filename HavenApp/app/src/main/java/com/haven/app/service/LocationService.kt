@@ -48,6 +48,8 @@ class LocationService : Service() {
     private var lastMessageCount = -1
     private var lastSosState = false
     private var pollingStarted = false
+    // Track which members are at which places: placeId -> set of member names
+    private var memberPlaceState = mutableMapOf<String, MutableSet<String>>()
 
     companion object {
         const val NOTIFICATION_ID = 1001
@@ -356,16 +358,71 @@ class LocationService : Service() {
                             }
                         }
                         lastNotifTimestamp = System.currentTimeMillis()
+
+                        // ── Place arrival/departure detection ──
+                        try {
+                            val placesResp = apiManager.api.getPlaces(haven.id)
+                            val places = if (placesResp.isSuccessful) placesResp.body() ?: emptyList() else emptyList()
+                            val membersResp = apiManager.api.getMembers(haven.id)
+                            val allMembers = if (membersResp.isSuccessful) membersResp.body() ?: emptyList() else emptyList()
+
+                            for (place in places) {
+                                val placeId = place.id
+                                val currentAtPlace = mutableSetOf<String>()
+
+                                for (m in allMembers) {
+                                    if (m.latitude == 0.0 && m.longitude == 0.0) continue
+                                    val dist = haversineMeters(m.latitude, m.longitude, place.latitude, place.longitude)
+                                    if (dist <= place.radiusMeters) {
+                                        currentAtPlace.add(m.name)
+                                    }
+                                }
+
+                                val previousAtPlace = memberPlaceState[placeId] ?: mutableSetOf()
+
+                                // Arrivals (in current but not previous)
+                                for (name in currentAtPlace) {
+                                    if (name !in previousAtPlace) {
+                                        val member = allMembers.firstOrNull { it.name == name }
+                                        if (member != null && member.userId != apiManager.userId) {
+                                            notificationHelper.notifyArrival(name, place.name)
+                                        }
+                                    }
+                                }
+
+                                // Departures (in previous but not current)
+                                for (name in previousAtPlace) {
+                                    if (name !in currentAtPlace) {
+                                        val member = allMembers.firstOrNull { it.name == name }
+                                        if (member != null && member.userId != apiManager.userId) {
+                                            notificationHelper.notifyDeparture(name, place.name)
+                                        }
+                                    }
+                                }
+
+                                memberPlaceState[placeId] = currentAtPlace
+                            }
+                        } catch (_: Exception) {}
                     }
 
                 } catch (_: Exception) {}
-                delay(5000) // Check every 5 seconds (faster for SOS)
+                delay(5000)
             }
         }
     }
 
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    private fun haversineMeters(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val r = 6371000.0 // Earth radius in meters
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2)
+        return r * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     }
 
     override fun onDestroy() {
