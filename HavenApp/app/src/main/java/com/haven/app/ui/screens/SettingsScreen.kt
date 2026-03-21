@@ -355,29 +355,6 @@ fun SettingsScreen(
                 )
             }
 
-            // ── Footer ──
-            Spacer(Modifier.height(8.dp))
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    "HAVEN", fontSize = 16.sp, fontWeight = FontWeight.Black,
-                    color = t.accent, fontFamily = SpaceMonoFamily, letterSpacing = 2.sp
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "v1.0 \u2022 FAMILY SAFETY REIMAGINED",
-                    fontSize = 9.sp, color = t.textFade,
-                    fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp
-                )
-                Spacer(Modifier.height(3.dp))
-                Text(
-                    "MADE WITH \u2665",
-                    fontSize = 8.sp, color = t.textFade.copy(alpha = 0.6f),
-                    fontFamily = SpaceMonoFamily
-                )
-            }
             Spacer(Modifier.height(16.dp))
         }
     }

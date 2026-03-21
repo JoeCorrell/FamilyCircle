@@ -55,7 +55,6 @@ fun HomeScreen(
     val places by viewModel.places.collectAsStateWithLifecycle()
     val notifications by viewModel.recentNotifications.collectAsStateWithLifecycle()
     val drivesCount by viewModel.drivesCount.collectAsStateWithLifecycle()
-    val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle()
     val familyName by viewModel.familyName.collectAsStateWithLifecycle()
     val myHavens by viewModel.myHavens.collectAsStateWithLifecycle()
     val recentErrands by viewModel.recentErrands.collectAsStateWithLifecycle()
@@ -64,32 +63,29 @@ fun HomeScreen(
     val recentCheckins by viewModel.recentCheckins.collectAsStateWithLifecycle()
     val memberColors by viewModel.memberColors.collectAsStateWithLifecycle()
     val isAdmin = myRole == "ADMIN"
-    val label = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp)
+    val label = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = SpaceMonoFamily, letterSpacing = 1.5.sp)
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+        modifier = Modifier.fillMaxSize()
     ) {
-        // ── Status ──
+        // ── Status + Haven Switcher (compact) ──
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(6.dp).background(t.ok, CircleShape))
+            Box(modifier = Modifier.size(5.dp).background(t.ok, CircleShape))
             Text(
                 if (members.isEmpty()) "Getting started"
                 else if (members.all { it.isOnline }) "Everyone's safe"
                 else "${members.count { it.isOnline }} of ${members.size} online",
-                fontSize = 11.sp, color = t.textMid, fontFamily = OutfitFamily
+                fontSize = 10.sp, color = t.textMid, fontFamily = OutfitFamily
             )
         }
 
-        // ── Haven Switcher ──
         Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             val activeId = viewModel.activeHavenId
             if (myHavens.isNotEmpty()) {
@@ -97,41 +93,44 @@ fun HomeScreen(
                     val isActive = haven.havenId == activeId
                     Box(
                         modifier = Modifier
-                            .background(if (isActive) t.accent.copy(alpha = 0.1f) else t.card, RoundedCornerShape(12.dp))
-                            .border(if (isActive) 1.5.dp else 1.dp, if (isActive) t.accent else t.border, RoundedCornerShape(12.dp))
+                            .background(if (isActive) t.accent.copy(alpha = 0.1f) else t.card, RoundedCornerShape(10.dp))
+                            .border(if (isActive) 1.5.dp else 1.dp, if (isActive) t.accent else t.border, RoundedCornerShape(10.dp))
                             .clickable { viewModel.switchHaven(haven.havenId) }
-                            .padding(horizontal = 14.dp, vertical = 6.dp)
+                            .padding(horizontal = 12.dp, vertical = 5.dp)
                     ) {
-                        Text(haven.havenName, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                        Text(haven.havenName, fontSize = 10.sp, fontWeight = FontWeight.Bold,
                             color = if (isActive) t.accent else t.textMid, fontFamily = OutfitFamily)
                     }
                 }
             } else {
                 Box(
                     modifier = Modifier
-                        .background(t.accent.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-                        .border(1.5.dp, t.accent, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                        .background(t.accent.copy(alpha = 0.1f), RoundedCornerShape(10.dp))
+                        .border(1.5.dp, t.accent, RoundedCornerShape(10.dp))
+                        .padding(horizontal = 12.dp, vertical = 5.dp)
                 ) {
-                    Text(familyName, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = OutfitFamily)
+                    Text(familyName, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = OutfitFamily)
                 }
             }
         }
-        Spacer(Modifier.height(4.dp))
 
+        // ── Scrollable content ──
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 14.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // ── Welcome Card (no members) ──
             if (members.isEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onProfileClick) {
-                    Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Outlined.GroupAdd, "Welcome", Modifier.size(36.dp), tint = t.accent)
-                        Spacer(Modifier.height(12.dp))
-                        Text("Welcome to Haven", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = t.text, fontFamily = OutfitFamily)
-                        Spacer(Modifier.height(6.dp))
-                        Text("Set up your profile and share your invite code to add family.", fontSize = 13.sp, color = t.textMid, fontFamily = OutfitFamily, lineHeight = 20.sp, textAlign = TextAlign.Center)
+                    Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Outlined.GroupAdd, "Welcome", Modifier.size(32.dp), tint = t.accent)
+                        Spacer(Modifier.height(8.dp))
+                        Text("Welcome to Haven", fontSize = 17.sp, fontWeight = FontWeight.ExtraBold, color = t.text, fontFamily = OutfitFamily)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Set up your profile and share your invite code to add family.", fontSize = 12.sp, color = t.textMid, fontFamily = OutfitFamily, lineHeight = 18.sp, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -140,7 +139,7 @@ fun HomeScreen(
             if (members.isNotEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth()) {
                     Column {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("FAMILY", style = label, color = t.textFade)
                             Text("${members.count { it.isOnline }} ONLINE", style = label, color = t.ok)
                         }
@@ -160,43 +159,43 @@ fun HomeScreen(
                                                 drawLine(t.border, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
                                             } else Modifier
                                         )
-                                        .padding(vertical = 14.dp, horizontal = 4.dp),
+                                        .padding(vertical = 10.dp, horizontal = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Box(modifier = Modifier.size(40.dp)) {
+                                    Box(modifier = Modifier.size(36.dp)) {
                                         Box(
-                                            modifier = Modifier.size(40.dp).background(mc.copy(alpha = 0.08f), RoundedCornerShape(13.dp)).border(2.5.dp, mc, RoundedCornerShape(13.dp)),
+                                            modifier = Modifier.size(36.dp).background(mc.copy(alpha = 0.08f), RoundedCornerShape(11.dp)).border(2.dp, mc, RoundedCornerShape(11.dp)),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(member.initials, fontSize = 16.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
+                                            Text(member.initials, fontSize = 14.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
                                         }
                                         if (member.isOnline) {
-                                            Box(modifier = Modifier.align(Alignment.BottomEnd).size(10.dp).background(t.ok, CircleShape).border(2.dp, t.card, CircleShape))
+                                            Box(modifier = Modifier.align(Alignment.BottomEnd).size(9.dp).background(t.ok, CircleShape).border(1.5.dp, t.card, CircleShape))
                                         }
                                     }
-                                    Spacer(Modifier.height(6.dp))
-                                    Text(member.name, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1)
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(member.name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1)
                                     val seen = member.lastSeenText()
                                     Text(
                                         if (seen == "Now") "LIVE" else seen,
-                                        fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                                        fontSize = 7.sp, fontWeight = FontWeight.Bold,
                                         color = if (seen == "Now") t.ok else t.textFade, fontFamily = SpaceMonoFamily
                                     )
                                 }
                             }
                             if (overflow > 0) {
                                 Column(
-                                    modifier = Modifier.weight(1f).padding(vertical = 14.dp, horizontal = 4.dp),
+                                    modifier = Modifier.weight(1f).padding(vertical = 10.dp, horizontal = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Box(
-                                        modifier = Modifier.size(40.dp).background(t.bgSub, RoundedCornerShape(13.dp)).border(2.5.dp, t.border, RoundedCornerShape(13.dp)),
+                                        modifier = Modifier.size(36.dp).background(t.bgSub, RoundedCornerShape(11.dp)).border(2.dp, t.border, RoundedCornerShape(11.dp)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("+$overflow", fontSize = 13.sp, fontWeight = FontWeight.Black, color = t.textMid, fontFamily = OutfitFamily)
+                                        Text("+$overflow", fontSize = 12.sp, fontWeight = FontWeight.Black, color = t.textMid, fontFamily = OutfitFamily)
                                     }
-                                    Spacer(Modifier.height(6.dp))
-                                    Text("more", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.textFade, fontFamily = OutfitFamily)
+                                    Spacer(Modifier.height(4.dp))
+                                    Text("more", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.textFade, fontFamily = OutfitFamily)
                                 }
                             }
                         }
@@ -204,54 +203,29 @@ fun HomeScreen(
                 }
             }
 
-            // ── Active Drives Banner ──
+            // ── Active Drives Banner (compact) ──
             if (currentlyDriving.isNotEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier.size(28.dp)
-                                    .drawBehind { drawCarIcon(t.warn) }
-                            )
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Box(modifier = Modifier.size(20.dp).drawBehind { drawCarIcon(t.warn) })
                             Text("ACTIVE DRIVES", style = label, color = t.warn)
                         }
-                        Spacer(Modifier.height(10.dp))
-                        currentlyDriving.forEach { driver ->
+                        Spacer(Modifier.height(6.dp))
+                        currentlyDriving.take(2).forEach { driver ->
                             val dc = Color(driver.color)
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Box(
-                                    modifier = Modifier.size(32.dp)
-                                        .background(dc.copy(alpha = 0.1f), RoundedCornerShape(10.dp))
-                                        .border(2.dp, dc, RoundedCornerShape(10.dp)),
+                                    modifier = Modifier.size(26.dp).background(dc.copy(alpha = 0.1f), RoundedCornerShape(8.dp)).border(1.5.dp, dc, RoundedCornerShape(8.dp)),
                                     contentAlignment = Alignment.Center
-                                ) {
-                                    Text(driver.initials, fontSize = 12.sp, fontWeight = FontWeight.Black, color = dc, fontFamily = OutfitFamily)
-                                }
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(driver.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
-                                    Text(
-                                        driver.currentAddress.ifEmpty { "On the road" },
-                                        fontSize = 10.sp, color = t.textMid, fontFamily = OutfitFamily,
-                                        maxLines = 1, overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .background(t.warn.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
-                                    Text(
-                                        "${driver.speed.toInt()} mph",
-                                        fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                                        color = t.warn, fontFamily = SpaceMonoFamily
-                                    )
+                                ) { Text(driver.initials, fontSize = 10.sp, fontWeight = FontWeight.Black, color = dc, fontFamily = OutfitFamily) }
+                                Text(driver.name, modifier = Modifier.weight(1f), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1)
+                                Box(modifier = Modifier.background(t.warn.copy(alpha = 0.1f), RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                                    Text("${driver.speed.toInt()} mph", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.warn, fontFamily = SpaceMonoFamily)
                                 }
                             }
                         }
@@ -260,188 +234,203 @@ fun HomeScreen(
             }
 
             // ── Quick Actions Row ──
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 // SOS
                 Box(
-                    modifier = Modifier.weight(1f).heightIn(min = 100.dp).clip(RoundedCornerShape(20.dp))
+                    modifier = Modifier.weight(1f).height(80.dp).clip(RoundedCornerShape(18.dp))
                         .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFF991B1B))))
-                        .clickable { onSosClick() }.padding(16.dp),
+                        .clickable { onSosClick() }.padding(12.dp),
                 ) {
                     Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
-                        Box(
-                            modifier = Modifier.size(24.dp)
-                                .drawBehind { drawSosIcon(Color.White.copy(alpha = 0.8f)) }
-                        )
+                        Box(modifier = Modifier.size(20.dp).drawBehind { drawSosIcon(Color.White.copy(alpha = 0.8f)) })
                         Column {
-                            Text("SOS", fontSize = 16.sp, fontWeight = FontWeight.Black, color = Color.White, fontFamily = OutfitFamily)
-                            Text("EMERGENCY", fontSize = 8.sp, color = Color.White.copy(alpha = 0.5f), fontFamily = SpaceMonoFamily)
+                            Text("SOS", fontSize = 14.sp, fontWeight = FontWeight.Black, color = Color.White, fontFamily = OutfitFamily)
+                            Text("EMERGENCY", fontSize = 7.sp, color = Color.White.copy(alpha = 0.5f), fontFamily = SpaceMonoFamily)
                         }
                     }
                 }
                 // Map
-                HavenCard(modifier = Modifier.weight(1f).heightIn(min = 100.dp), onClick = onMapClick) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Box(
-                            modifier = Modifier.size(24.dp)
-                                .drawBehind { drawMapPinIcon(t.accent) }
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text("Map", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
-                        Text("VIEW FAMILY", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                HavenCard(modifier = Modifier.weight(1f).height(80.dp), onClick = onMapClick) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Box(modifier = Modifier.size(20.dp).drawBehind { drawMapPinIcon(t.accent) })
+                        Spacer(Modifier.height(6.dp))
+                        Text("Map", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                        Text("VIEW FAMILY", fontSize = 7.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                     }
                 }
                 // Driving
-                HavenCard(modifier = Modifier.weight(1f).heightIn(min = 100.dp), onClick = onSafetyClick) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Box(
-                            modifier = Modifier.size(24.dp)
-                                .drawBehind { drawCarIcon(t.accent) }
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text("Trips", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
-                        Text("$drivesCount DRIVES", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                HavenCard(modifier = Modifier.weight(1f).height(80.dp), onClick = onSafetyClick) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Box(modifier = Modifier.size(20.dp).drawBehind { drawCarIcon(t.accent) })
+                        Spacer(Modifier.height(6.dp))
+                        Text("Trips", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                        Text("$drivesCount DRIVES", fontSize = 7.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                     }
                 }
             }
 
-            // ── Recent Check-Ins ──
+            // ── Places + Activity side by side when both have data ──
+            if (places.isNotEmpty() && notifications.isNotEmpty()) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    // Places (compact)
+                    HavenCard(modifier = Modifier.weight(1f), onClick = onPlacesClick) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("PLACES", style = label, color = t.textFade)
+                                if (isAdmin) {
+                                    Text("+", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily,
+                                        modifier = Modifier.clickable { onAddPlaceClick() })
+                                }
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            places.take(3).forEach { place ->
+                                val pc = Color(place.color)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Box(Modifier.size(6.dp).background(pc, CircleShape))
+                                    Text(place.name, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                    Text("${place.membersPresent}", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                                }
+                            }
+                        }
+                    }
+                    // Activity (compact)
+                    HavenCard(modifier = Modifier.weight(1f), onClick = onNotificationsClick) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Text("ACTIVITY", style = label, color = t.textFade)
+                            Spacer(Modifier.height(6.dp))
+                            notifications.take(3).forEach { notif ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Box(Modifier.size(5.dp).background(Color(notif.color), CircleShape))
+                                    Text(notif.title, fontSize = 10.sp, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Places standalone
+                HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onPlacesClick) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("PLACES", style = label, color = t.textFade)
+                            if (isAdmin) {
+                                Text("+ ADD", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily,
+                                    modifier = Modifier.clickable { onAddPlaceClick() })
+                            }
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        if (places.isEmpty()) {
+                            Text("No saved places yet.", fontSize = 11.sp, color = t.textFade, fontFamily = OutfitFamily)
+                        } else {
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                places.take(4).forEach { place ->
+                                    val pc = Color(place.color)
+                                    Column(
+                                        modifier = Modifier.weight(1f).background(if (t.isDark) t.surfaceAlt else t.bgSub, RoundedCornerShape(12.dp)).padding(8.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Box(modifier = Modifier.size(22.dp).background(pc.copy(alpha = 0.12f), RoundedCornerShape(6.dp)), contentAlignment = Alignment.Center) {
+                                            Box(Modifier.size(6.dp).background(pc, CircleShape))
+                                        }
+                                        Spacer(Modifier.height(3.dp))
+                                        Text(place.name, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text("${place.membersPresent} here", fontSize = 7.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Activity standalone
+                if (notifications.isNotEmpty()) {
+                    HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onNotificationsClick) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text("RECENT ACTIVITY", style = label, color = t.textFade)
+                            Spacer(Modifier.height(6.dp))
+                            notifications.take(3).forEach { notif ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(Modifier.size(6.dp).background(Color(notif.color), CircleShape))
+                                    Text(notif.title, modifier = Modifier.weight(1f), fontSize = 11.sp, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(notif.timeAgo(), fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Recent Check-Ins (compact) ──
             if (recentCheckins.isNotEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier.size(20.dp)
-                                    .drawBehind { drawCheckinIcon(t.accent) }
-                            )
-                            Text("RECENT CHECK-INS", style = label, color = t.textFade)
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Box(modifier = Modifier.size(16.dp).drawBehind { drawCheckinIcon(t.accent) })
+                            Text("CHECK-INS", style = label, color = t.textFade)
                         }
-                        Spacer(Modifier.height(10.dp))
-                        recentCheckins.forEach { checkin ->
+                        Spacer(Modifier.height(6.dp))
+                        recentCheckins.take(2).forEach { checkin ->
                             val sc = Color(memberColors[checkin.senderName] ?: 0xFF999999)
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Box(
-                                    modifier = Modifier.size(28.dp)
-                                        .background(sc.copy(alpha = 0.1f), RoundedCornerShape(9.dp))
-                                        .border(1.5.dp, sc, RoundedCornerShape(9.dp)),
+                                    modifier = Modifier.size(22.dp).background(sc.copy(alpha = 0.1f), RoundedCornerShape(7.dp)).border(1.dp, sc, RoundedCornerShape(7.dp)),
                                     contentAlignment = Alignment.Center
-                                ) {
-                                    Text(checkin.emoji, fontSize = 14.sp)
-                                }
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        checkin.senderName,
-                                        fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
-                                        color = t.text, fontFamily = OutfitFamily
-                                    )
-                                    if (checkin.message.isNotEmpty()) {
-                                        Text(
-                                            checkin.message,
-                                            fontSize = 10.sp, color = t.textMid, fontFamily = OutfitFamily,
-                                            maxLines = 1, overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-                                val timeAgo = checkinTimeAgo(checkin.timestamp.toLong())
-                                Text(timeAgo, fontSize = 9.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                                ) { Text(checkin.emoji, fontSize = 11.sp) }
+                                Text(checkin.senderName, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily, modifier = Modifier.weight(1f))
+                                Text(checkinTimeAgo(checkin.timestamp.toLong()), fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                             }
                         }
                     }
                 }
             }
 
-            // ── Places ──
-            HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onPlacesClick) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("PLACES", style = label, color = t.textFade)
-                        if (isAdmin) {
-                            Text("+ ADD", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily,
-                                modifier = Modifier.clickable { onAddPlaceClick() })
-                        }
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    if (places.isEmpty()) {
-                        Text("No saved places. Tap + ADD to create one.", fontSize = 12.sp, color = t.textFade, fontFamily = OutfitFamily)
-                    } else {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            places.take(4).forEach { place ->
-                                val pc = Color(place.color)
-                                Column(
-                                    modifier = Modifier.weight(1f).background(if (t.isDark) t.surfaceAlt else t.bgSub, RoundedCornerShape(14.dp)).padding(10.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Box(modifier = Modifier.size(28.dp).background(pc.copy(alpha = 0.12f), RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) {
-                                        Box(Modifier.size(8.dp).background(pc, CircleShape))
-                                    }
-                                    Spacer(Modifier.height(5.dp))
-                                    Text(place.name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Text("${place.membersPresent} here", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ── Recent Activity ──
-            if (notifications.isNotEmpty()) {
-                HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onNotificationsClick) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("RECENT ACTIVITY", style = label, color = t.textFade)
-                        Spacer(Modifier.height(10.dp))
-                        notifications.take(4).forEach { notif ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Box(Modifier.size(8.dp).background(Color(notif.color), CircleShape))
-                                Text(notif.title, modifier = Modifier.weight(1f), fontSize = 12.sp, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(notif.timeAgo(), fontSize = 9.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ── Recent Errands ──
+            // ── Recent Errands (compact) ──
             if (recentErrands.isNotEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(10.dp)) {
                         Text("ERRANDS", style = label, color = t.textFade)
-                        Spacer(Modifier.height(10.dp))
-                        recentErrands.forEach { errand ->
+                        Spacer(Modifier.height(6.dp))
+                        recentErrands.take(2).forEach { errand ->
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Box(
-                                    modifier = Modifier.size(28.dp).background(
+                                    modifier = Modifier.size(22.dp).background(
                                         if (errand.status == "ACCEPTED") t.ok.copy(alpha = 0.1f) else t.warn.copy(alpha = 0.1f),
-                                        RoundedCornerShape(8.dp)
+                                        RoundedCornerShape(6.dp)
                                     ),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         if (errand.status == "ACCEPTED") Icons.Outlined.Check else Icons.Outlined.Assignment,
-                                        null, Modifier.size(14.dp),
+                                        null, Modifier.size(12.dp),
                                         tint = if (errand.status == "ACCEPTED") t.ok else t.warn
                                     )
                                 }
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(errand.item, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(errand.item, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     Text(
                                         if (errand.status == "ACCEPTED") "${errand.acceptedName} is on it"
                                         else "${errand.senderName} needs this",
-                                        fontSize = 9.sp, color = if (errand.status == "ACCEPTED") t.ok else t.textFade, fontFamily = SpaceMonoFamily
+                                        fontSize = 8.sp, color = if (errand.status == "ACCEPTED") t.ok else t.textFade, fontFamily = SpaceMonoFamily
                                     )
                                 }
                             }
@@ -450,7 +439,6 @@ fun HomeScreen(
                 }
             }
         }
-        Spacer(Modifier.height(12.dp))
     }
 }
 
@@ -482,7 +470,6 @@ private fun DrawScope.drawSosIcon(color: Color) {
     val w = size.width; val h = size.height
     val cx = w / 2f; val cy = h / 2f
     val s = Stroke(width = w * 0.1f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-    // Shield outline
     val shield = Path().apply {
         moveTo(cx, h * 0.05f)
         cubicTo(w * 0.15f, h * 0.05f, w * 0.08f, h * 0.15f, w * 0.08f, h * 0.35f)
@@ -492,16 +479,13 @@ private fun DrawScope.drawSosIcon(color: Color) {
         close()
     }
     drawPath(shield, color, style = s)
-    // Exclamation
     drawLine(color, Offset(cx, h * 0.28f), Offset(cx, h * 0.58f), strokeWidth = w * 0.11f, cap = StrokeCap.Round)
     drawCircle(color, radius = w * 0.06f, center = Offset(cx, h * 0.73f))
 }
 
 private fun DrawScope.drawMapPinIcon(color: Color) {
-    val w = size.width; val h = size.height
-    val cx = w / 2f
+    val w = size.width; val h = size.height; val cx = w / 2f
     val s = Stroke(width = w * 0.09f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-    // Pin body — proper teardrop
     val pin = Path().apply {
         moveTo(cx, h * 0.92f)
         cubicTo(cx - w * 0.08f, h * 0.68f, w * 0.1f, h * 0.5f, w * 0.1f, h * 0.36f)
@@ -511,14 +495,12 @@ private fun DrawScope.drawMapPinIcon(color: Color) {
         close()
     }
     drawPath(pin, color, style = s)
-    // Inner dot
     drawCircle(color, radius = w * 0.14f, center = Offset(cx, h * 0.35f))
 }
 
 private fun DrawScope.drawCarIcon(color: Color) {
     val w = size.width; val h = size.height
     val s = Stroke(width = w * 0.09f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-    // Cabin (windshield shape)
     val cabin = Path().apply {
         moveTo(w * 0.22f, h * 0.45f)
         lineTo(w * 0.32f, h * 0.2f)
@@ -526,13 +508,10 @@ private fun DrawScope.drawCarIcon(color: Color) {
         lineTo(w * 0.78f, h * 0.45f)
     }
     drawPath(cabin, color, style = s)
-    // Body
     drawRoundRect(color, Offset(w * 0.06f, h * 0.42f), androidx.compose.ui.geometry.Size(w * 0.88f, h * 0.28f),
         cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.08f), style = s)
-    // Wheels
     drawCircle(color, radius = w * 0.1f, center = Offset(w * 0.28f, h * 0.76f), style = Stroke(width = w * 0.08f))
     drawCircle(color, radius = w * 0.1f, center = Offset(w * 0.72f, h * 0.76f), style = Stroke(width = w * 0.08f))
-    // Headlights
     drawCircle(color, radius = w * 0.04f, center = Offset(w * 0.14f, h * 0.52f))
     drawCircle(color, radius = w * 0.04f, center = Offset(w * 0.86f, h * 0.52f))
 }
@@ -540,7 +519,6 @@ private fun DrawScope.drawCarIcon(color: Color) {
 private fun DrawScope.drawCheckinIcon(color: Color) {
     val w = size.width; val h = size.height
     val s = Stroke(width = w * 0.09f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-    // Speech bubble with heart
     val bubble = Path().apply {
         moveTo(w * 0.5f, h * 0.9f)
         lineTo(w * 0.28f, h * 0.72f)
@@ -556,7 +534,6 @@ private fun DrawScope.drawCheckinIcon(color: Color) {
         close()
     }
     drawPath(bubble, color, style = s)
-    // Waving hand lines (3 arcs)
     drawLine(color, Offset(w * 0.38f, h * 0.28f), Offset(w * 0.38f, h * 0.52f), strokeWidth = w * 0.07f, cap = StrokeCap.Round)
     drawLine(color, Offset(w * 0.52f, h * 0.22f), Offset(w * 0.52f, h * 0.52f), strokeWidth = w * 0.07f, cap = StrokeCap.Round)
     drawLine(color, Offset(w * 0.66f, h * 0.28f), Offset(w * 0.66f, h * 0.52f), strokeWidth = w * 0.07f, cap = StrokeCap.Round)
