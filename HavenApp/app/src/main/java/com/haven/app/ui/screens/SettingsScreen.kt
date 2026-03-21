@@ -61,6 +61,9 @@ fun SettingsScreen(
     val context = LocalContext.current
     val familyName by viewModel.familyName.collectAsStateWithLifecycle()
     val memberCount by viewModel.memberCount.collectAsStateWithLifecycle()
+    val havenCount by viewModel.havenCount.collectAsStateWithLifecycle()
+    val driveCount by viewModel.driveCount.collectAsStateWithLifecycle()
+    val notificationCount by viewModel.notificationCount.collectAsStateWithLifecycle()
     val currentTheme by viewModel.currentTheme.collectAsStateWithLifecycle()
     val inviteCode by viewModel.inviteCode.collectAsStateWithLifecycle()
     val userName by viewModel.userName.collectAsStateWithLifecycle()
@@ -207,10 +210,10 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                StatCell("1", "HAVEN", t.accent, t, Modifier.weight(1f))
+                StatCell("$havenCount", "HAVENS", t.accent, t, Modifier.weight(1f))
                 StatCell("$memberCount", "MEMBERS", t.ok, t, Modifier.weight(1f))
-                StatCell("0", "DRIVES", t.warn, t, Modifier.weight(1f))
-                StatCell("0", "ALERTS", t.danger, t, Modifier.weight(1f))
+                StatCell("$driveCount", "DRIVES", t.warn, t, Modifier.weight(1f))
+                StatCell("$notificationCount", "ALERTS", t.danger, t, Modifier.weight(1f))
             }
 
             // ── Quick Actions ──

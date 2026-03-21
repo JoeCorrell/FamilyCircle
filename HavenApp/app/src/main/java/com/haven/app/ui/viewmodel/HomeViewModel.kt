@@ -7,7 +7,6 @@ import com.haven.app.data.api.ErrandData
 import com.haven.app.data.api.HavenApiManager
 import com.haven.app.data.api.HavenInfo
 import com.haven.app.data.api.toFamilyMember
-import com.haven.app.data.api.toDrive
 import com.haven.app.data.model.FamilyMember
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -35,8 +34,6 @@ class HomeViewModel @Inject constructor(
     val drivesCount: StateFlow<Int> = apiManager.observeDrives()
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
-    val unreadCount: StateFlow<Int> = MutableStateFlow(0)
 
     val familyName: StateFlow<String> = flow {
         emit(apiManager.getHaven()?.name ?: "My Family")

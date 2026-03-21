@@ -21,14 +21,10 @@ class NotificationHelper @Inject constructor(
     private val apiManager: HavenApiManager
 ) {
     companion object {
-        const val COLOR_MESSAGE = 0xFF38BDF8L
-        const val COLOR_ERRAND = 0xFFFBBF24L
         const val COLOR_BATTERY = 0xFFF87171L
         const val COLOR_SPEED = 0xFFFBBF24L
         const val COLOR_ARRIVAL = 0xFF34D399L
         const val COLOR_DEPARTURE = 0xFFA78BFAL
-        const val COLOR_CHECKIN = 0xFF38BDF8L
-        const val COLOR_GEOFENCE = 0xFF60A5FAL
         const val COLOR_DRIVING = 0xFFFB923CL
     }
 
@@ -36,8 +32,7 @@ class NotificationHelper @Inject constructor(
         title: String,
         body: String,
         channelId: String = HavenApp.ALERTS_CHANNEL_ID,
-        color: Long = COLOR_MESSAGE,
-        type: String = "INFO"
+        color: Long = COLOR_ARRIVAL
     ) {
         withContext(Dispatchers.IO) {
             try { apiManager.createNotification(title, color) } catch (_: Exception) {}
@@ -73,39 +68,23 @@ class NotificationHelper @Inject constructor(
         NotificationManagerCompat.from(context).notify(notifId, notification)
     }
 
-    suspend fun notifyMessage(senderName: String, messageText: String) {
-        sendNotification("$senderName sent a message", messageText.take(100), HavenApp.MESSAGES_CHANNEL_ID, COLOR_MESSAGE, "MESSAGE")
-    }
-
-    suspend fun notifyErrand(senderName: String, item: String) {
-        sendNotification("$senderName needs something", "Errand: $item", HavenApp.MESSAGES_CHANNEL_ID, COLOR_ERRAND, "ERRAND")
-    }
-
     suspend fun notifyBatteryLow(memberName: String, level: Int) {
-        sendNotification("$memberName - battery low", "Battery at $level%", HavenApp.ALERTS_CHANNEL_ID, COLOR_BATTERY, "BATTERY_LOW")
+        sendNotification("$memberName - battery low", "Battery at $level%", HavenApp.ALERTS_CHANNEL_ID, COLOR_BATTERY)
     }
 
     suspend fun notifySpeedAlert(memberName: String, speedMph: Int) {
-        sendNotification("$memberName speed alert", "Driving at ${speedMph}mph", HavenApp.ALERTS_CHANNEL_ID, COLOR_SPEED, "SPEED_ALERT")
+        sendNotification("$memberName speed alert", "Driving at ${speedMph}mph", HavenApp.ALERTS_CHANNEL_ID, COLOR_SPEED)
     }
 
     suspend fun notifyArrival(memberName: String, placeName: String) {
-        sendNotification("$memberName arrived", "Arrived at $placeName", HavenApp.GEOFENCE_CHANNEL_ID, COLOR_ARRIVAL, "ARRIVAL")
+        sendNotification("$memberName arrived", "Arrived at $placeName", HavenApp.GEOFENCE_CHANNEL_ID, COLOR_ARRIVAL)
     }
 
     suspend fun notifyDeparture(memberName: String, placeName: String) {
-        sendNotification("$memberName left", "Left $placeName", HavenApp.GEOFENCE_CHANNEL_ID, COLOR_DEPARTURE, "DEPARTURE")
-    }
-
-    suspend fun notifyCheckIn(requesterName: String, targetName: String) {
-        sendNotification("Check-in requested", "$requesterName requested a check-in for $targetName", HavenApp.ALERTS_CHANNEL_ID, COLOR_CHECKIN, "CHECKIN")
+        sendNotification("$memberName left", "Left $placeName", HavenApp.GEOFENCE_CHANNEL_ID, COLOR_DEPARTURE)
     }
 
     suspend fun notifyDriveStarted(memberName: String) {
-        sendNotification("$memberName started driving", "Drive in progress", HavenApp.ALERTS_CHANNEL_ID, COLOR_DRIVING, "DRIVE_START")
-    }
-
-    suspend fun notifyMemberOnline(memberName: String) {
-        sendNotification("$memberName is online", "Location sharing is active", HavenApp.ALERTS_CHANNEL_ID, COLOR_ARRIVAL, "ONLINE")
+        sendNotification("$memberName started driving", "Drive in progress", HavenApp.ALERTS_CHANNEL_ID, COLOR_DRIVING)
     }
 }

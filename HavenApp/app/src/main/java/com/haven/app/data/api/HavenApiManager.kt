@@ -102,7 +102,15 @@ class HavenApiManager @Inject constructor(
 
     suspend fun switchHaven(havenId: String) {
         tokenStore.saveHavenId(havenId)
-        sosReceived.value = null  // Clear any active SOS alert when switching havens
+        sosReceived.value = null
+        // Force all flows to re-fetch with new havenId immediately
+        _refreshMembers.tryEmit(Unit)
+        _refreshMessages.tryEmit(Unit)
+        _refreshPlaces.tryEmit(Unit)
+        _refreshNotifications.tryEmit(Unit)
+        _refreshErrands.tryEmit(Unit)
+        _refreshDrives.tryEmit(Unit)
+        _refreshCheckins.tryEmit(Unit)
     }
 
     // SOS received state — observed by UI to show full-screen alert

@@ -48,6 +48,7 @@ class LocationService : Service() {
     private var lastMessageCount = -1
     private var lastSosState = false
     private var pollingStarted = false
+    private var cachedMemberName: String? = null
     // Track which members are at which places: placeId -> set of member names
     private var memberPlaceState = mutableMapOf<String, MutableSet<String>>()
 
@@ -141,7 +142,10 @@ class LocationService : Service() {
                                 batteryLevel = battery
                             ))
 
-                            val memberName = apiManager.getMyMember()?.name ?: "You"
+                            if (cachedMemberName == null) {
+                                cachedMemberName = apiManager.getMyMember()?.name
+                            }
+                            val memberName = cachedMemberName ?: "You"
                             val now = System.currentTimeMillis()
 
                             if (battery <= 15 && now - lastBatteryAlertTime > 30 * 60 * 1000) {
@@ -428,10 +432,9 @@ class LocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         stopLocationUpdates()
-        // Mark offline in background — don't block main thread
-        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        // Mark offline before cancelling scope
+        serviceScope.launch {
             try { apiManager.updateMyMember(mapOf("isOnline" to false)) } catch (_: Exception) {}
-        }
-        serviceScope.cancel()
+        }.invokeOnCompletion { serviceScope.cancel() }
     }
 }

@@ -48,25 +48,11 @@ fun SavedPlacesScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(t.accentBg, RoundedCornerShape(10.dp))
-                        .clickable { onBack() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Outlined.ChevronLeft, "Back", Modifier.size(16.dp), tint = t.accent)
-                }
-                Text(
-                    "Saved Places", fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold, color = t.text,
-                    fontFamily = OutfitFamily, letterSpacing = (-0.5).sp
-                )
-            }
+            Text(
+                "Saved Places", fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold, color = t.text,
+                fontFamily = OutfitFamily, letterSpacing = (-0.5).sp
+            )
             if (isAdmin) {
                 Box(
                     modifier = Modifier

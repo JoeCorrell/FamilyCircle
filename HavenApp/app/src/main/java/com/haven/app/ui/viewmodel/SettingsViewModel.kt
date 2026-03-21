@@ -53,6 +53,18 @@ class SettingsViewModel @Inject constructor(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    val havenCount: StateFlow<Int> = flow {
+        emit(apiManager.getMyHavens().size)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
+
+    val driveCount: StateFlow<Int> = apiManager.observeDrives()
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val notificationCount: StateFlow<Int> = apiManager.observeNotifications()
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     val currentTheme: StateFlow<HavenColors> = userPreferences.theme
         .map { HavenThemes.fromKey(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HavenThemes.Sand)

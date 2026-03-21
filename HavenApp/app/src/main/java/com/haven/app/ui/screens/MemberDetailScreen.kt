@@ -79,27 +79,13 @@ fun MemberDetailScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Header with back button
-        Row(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(t.accentBg, RoundedCornerShape(10.dp))
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.ChevronLeft, "Back", Modifier.size(16.dp), tint = t.accent)
-            }
-            Text(
-                member.name, fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold, color = t.text,
-                fontFamily = OutfitFamily, letterSpacing = (-0.5).sp
-            )
-        }
+        // Header
+        Text(
+            member.name, fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold, color = t.text,
+            fontFamily = OutfitFamily, letterSpacing = (-0.5).sp,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+        )
 
         Column(
             modifier = Modifier.padding(horizontal = 18.dp),
