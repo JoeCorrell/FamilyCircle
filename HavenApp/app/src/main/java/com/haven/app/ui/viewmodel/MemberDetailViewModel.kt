@@ -23,7 +23,11 @@ class MemberDetailViewModel @Inject constructor(
     fun loadLocationHistory(memberId: String) {
         viewModelScope.launch {
             _isLoadingHistory.value = true
-            _locationHistory.value = apiManager.getLocationHistory(memberId)
+            val raw = apiManager.getLocationHistory(memberId)
+            // Deduplicate — only keep entries where the address changed
+            _locationHistory.value = raw.filterIndexed { index, entry ->
+                index == 0 || entry.address != raw[index - 1].address
+            }
             _isLoadingHistory.value = false
         }
     }
