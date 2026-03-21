@@ -86,7 +86,6 @@ fun HomeScreen(
         // ── Scrollable content ──
         Column(
             modifier = Modifier
-                .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 14.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -247,103 +246,55 @@ fun HomeScreen(
                 }
             }
 
-            // ── Places + Activity side by side when both have data ──
-            if (places.isNotEmpty() && notifications.isNotEmpty()) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // Places (compact)
-                    HavenCard(modifier = Modifier.weight(1f), onClick = onPlacesClick) {
-                        Column(modifier = Modifier.padding(10.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("PLACES", style = label, color = t.textFade)
-                                if (isAdmin) {
-                                    Text("+", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily,
-                                        modifier = Modifier.clickable { onAddPlaceClick() })
-                                }
-                            }
-                            Spacer(Modifier.height(6.dp))
-                            places.take(3).forEach { place ->
+            // ── Places ──
+            HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onPlacesClick) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text("PLACES", style = label, color = t.textFade)
+                        if (isAdmin) {
+                            Text("+ ADD", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily,
+                                modifier = Modifier.clickable { onAddPlaceClick() })
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    if (places.isEmpty()) {
+                        Text("No saved places yet.", fontSize = 11.sp, color = t.textFade, fontFamily = OutfitFamily)
+                    } else {
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            places.take(4).forEach { place ->
                                 val pc = Color(place.color)
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                Column(
+                                    modifier = Modifier.weight(1f).background(if (t.isDark) t.surfaceAlt else t.bgSub, RoundedCornerShape(12.dp)).padding(8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Box(Modifier.size(6.dp).background(pc, CircleShape))
-                                    Text(place.name, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                                    Text("${place.membersPresent}", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
-                                }
-                            }
-                        }
-                    }
-                    // Activity (compact)
-                    HavenCard(modifier = Modifier.weight(1f), onClick = onNotificationsClick) {
-                        Column(modifier = Modifier.padding(10.dp)) {
-                            Text("ACTIVITY", style = label, color = t.textFade)
-                            Spacer(Modifier.height(6.dp))
-                            notifications.take(3).forEach { notif ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Box(Modifier.size(5.dp).background(Color(notif.color), CircleShape))
-                                    Text(notif.title, fontSize = 10.sp, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                // Places standalone
-                HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onPlacesClick) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("PLACES", style = label, color = t.textFade)
-                            if (isAdmin) {
-                                Text("+ ADD", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = t.accent, fontFamily = SpaceMonoFamily,
-                                    modifier = Modifier.clickable { onAddPlaceClick() })
-                            }
-                        }
-                        Spacer(Modifier.height(6.dp))
-                        if (places.isEmpty()) {
-                            Text("No saved places yet.", fontSize = 11.sp, color = t.textFade, fontFamily = OutfitFamily)
-                        } else {
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                places.take(4).forEach { place ->
-                                    val pc = Color(place.color)
-                                    Column(
-                                        modifier = Modifier.weight(1f).background(if (t.isDark) t.surfaceAlt else t.bgSub, RoundedCornerShape(12.dp)).padding(8.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Box(modifier = Modifier.size(22.dp).background(pc.copy(alpha = 0.12f), RoundedCornerShape(6.dp)), contentAlignment = Alignment.Center) {
-                                            Box(Modifier.size(6.dp).background(pc, CircleShape))
-                                        }
-                                        Spacer(Modifier.height(3.dp))
-                                        Text(place.name, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text("${place.membersPresent} here", fontSize = 7.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                                    Box(modifier = Modifier.size(22.dp).background(pc.copy(alpha = 0.12f), RoundedCornerShape(6.dp)), contentAlignment = Alignment.Center) {
+                                        Box(Modifier.size(6.dp).background(pc, CircleShape))
                                     }
+                                    Spacer(Modifier.height(3.dp))
+                                    Text(place.name, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text("${place.membersPresent} here", fontSize = 7.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                // Activity standalone
-                if (notifications.isNotEmpty()) {
-                    HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onNotificationsClick) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("RECENT ACTIVITY", style = label, color = t.textFade)
-                            Spacer(Modifier.height(6.dp))
-                            notifications.take(3).forEach { notif ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Box(Modifier.size(6.dp).background(Color(notif.color), CircleShape))
-                                    Text(notif.title, modifier = Modifier.weight(1f), fontSize = 11.sp, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Text(notif.timeAgo(), fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
-                                }
+            // ── Recent Activity ──
+            if (notifications.isNotEmpty()) {
+                HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onNotificationsClick) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text("RECENT ACTIVITY", style = label, color = t.textFade)
+                        Spacer(Modifier.height(6.dp))
+                        notifications.take(3).forEach { notif ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Box(Modifier.size(6.dp).background(Color(notif.color), CircleShape))
+                                Text(notif.title, modifier = Modifier.weight(1f), fontSize = 11.sp, color = t.text, fontFamily = OutfitFamily, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(notif.timeAgo(), fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                             }
                         }
                     }
