@@ -1,5 +1,8 @@
 package com.haven.app.data.api
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
@@ -14,6 +17,7 @@ class HavenApiManager @Inject constructor(
     val api: HavenApi,
     private val tokenStore: TokenStore
 ) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     // ── Auth ──
 
     val isSignedIn: Boolean get() = !tokenStore.getToken().isNullOrEmpty()
@@ -189,9 +193,12 @@ class HavenApiManager @Inject constructor(
         }
     }.distinctUntilChanged()
 
-    fun observeMembers(): Flow<List<MemberData>> = pollingFlow(5000) { api.getMembers(it) }
+    private val _members = pollingFlow(5000) { api.getMembers(it) }
+        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
 
-    fun observeMyMember(): Flow<MemberData?> = observeMembers()
+    fun observeMembers(): Flow<List<MemberData>> = _members
+
+    fun observeMyMember(): Flow<MemberData?> = _members
         .map { members -> members.firstOrNull { it.userId == userId } }
 
     suspend fun getMyMember(): MemberData? {
@@ -212,7 +219,10 @@ class HavenApiManager @Inject constructor(
 
     // ── Messages (polling-based flow) ──
 
-    fun observeMessages(): Flow<List<MessageData>> = pollingFlow(3000) { api.getMessages(it) }
+    private val _messages = pollingFlow(3000) { api.getMessages(it) }
+        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+
+    fun observeMessages(): Flow<List<MessageData>> = _messages
 
     suspend fun sendMessage(senderName: String, text: String) {
         val hid = tokenStore.getHavenId() ?: return
@@ -221,7 +231,10 @@ class HavenApiManager @Inject constructor(
 
     // ── Places (polling-based flow) ──
 
-    fun observePlaces(): Flow<List<PlaceData>> = pollingFlow(10000) { api.getPlaces(it) }
+    private val _places = pollingFlow(10000) { api.getPlaces(it) }
+        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+
+    fun observePlaces(): Flow<List<PlaceData>> = _places
 
     suspend fun createPlace(request: CreatePlaceRequest) {
         val hid = tokenStore.getHavenId() ?: return
@@ -235,7 +248,10 @@ class HavenApiManager @Inject constructor(
 
     // ── Notifications (polling-based flow) ──
 
-    fun observeNotifications(): Flow<List<NotificationData>> = pollingFlow(15000) { api.getNotifications(it) }
+    private val _notifications = pollingFlow(15000) { api.getNotifications(it) }
+        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+
+    fun observeNotifications(): Flow<List<NotificationData>> = _notifications
 
     suspend fun createNotification(title: String, color: Long) {
         val hid = tokenStore.getHavenId() ?: return
@@ -244,19 +260,10 @@ class HavenApiManager @Inject constructor(
 
     // ── Errands ──
 
-    fun observeErrands(): Flow<List<ErrandData>> = flow {
-        var firstLoad = true
-        while (true) {
-            val hid = tokenStore.getHavenId()
-            if (hid != null) {
-                try {
-                    val resp = api.getErrands(hid)
-                    if (resp.isSuccessful) { emit(resp.body() ?: emptyList()); firstLoad = false }
-                } catch (_: Exception) {}
-            }
-            delay(if (firstLoad) 1000 else 5000)
-        }
-    }.distinctUntilChanged()
+    private val _errands = pollingFlow(5000) { api.getErrands(it) }
+        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+
+    fun observeErrands(): Flow<List<ErrandData>> = _errands
 
     suspend fun createErrand(senderName: String, item: String, address: String = "", note: String = "") {
         val hid = tokenStore.getHavenId() ?: return
@@ -280,11 +287,17 @@ class HavenApiManager @Inject constructor(
 
     // ── Drives (polling-based flow) ──
 
-    fun observeDrives(): Flow<List<DriveData>> = pollingFlow(10000) { api.getDrives(it) }
+    private val _drives = pollingFlow(10000) { api.getDrives(it) }
+        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+
+    fun observeDrives(): Flow<List<DriveData>> = _drives
 
     // ── Check-ins (polling-based flow) ──
 
-    fun observeCheckins(): Flow<List<CheckinData>> = pollingFlow(10000) { api.getCheckins(it) }
+    private val _checkins = pollingFlow(10000) { api.getCheckins(it) }
+        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+
+    fun observeCheckins(): Flow<List<CheckinData>> = _checkins
 
     suspend fun createCheckin(senderName: String, emoji: String, message: String = "") {
         val hid = tokenStore.getHavenId() ?: return

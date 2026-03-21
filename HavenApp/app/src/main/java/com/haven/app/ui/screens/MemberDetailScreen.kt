@@ -58,7 +58,7 @@ fun MemberDetailScreen(
 
     // Load location history on first composition
     LaunchedEffect(member.id) {
-        detailViewModel.loadLocationHistory(member.id.toString())
+        detailViewModel.loadLocationHistory(member.serverId)
     }
 
     fun call() {

@@ -245,9 +245,9 @@ fun HavenManagementScreen(
                     key(member.id) {
                         HavenMemberCard(
                             member = member, t = t, isAdmin = isAdmin,
-                            onKick = { viewModel.kickMember(member.id.toString()) },
-                            onPromote = { viewModel.promoteMember(member.id.toString()) },
-                            onDemote = { viewModel.demoteMember(member.id.toString()) }
+                            onKick = { viewModel.kickMember(member.serverId) },
+                            onPromote = { viewModel.promoteMember(member.serverId) },
+                            onDemote = { viewModel.demoteMember(member.serverId) }
                         )
                     }
                 }

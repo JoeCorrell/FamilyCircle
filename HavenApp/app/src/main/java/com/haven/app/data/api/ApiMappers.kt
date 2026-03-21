@@ -6,6 +6,7 @@ import com.haven.app.data.model.MemberStatus
 
 fun MemberData.toFamilyMember(): FamilyMember = FamilyMember(
     id = userId.hashCode().toLong(),
+    serverId = id,
     name = name,
     initials = initials.ifEmpty { name.take(1).uppercase() },
     color = colorAsLong(),

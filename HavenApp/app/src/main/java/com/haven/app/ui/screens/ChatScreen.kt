@@ -122,7 +122,7 @@ fun ChatScreen(
                         }
                     }
                     is ChatItem.MessageItem -> {
-                        item(key = "${item.message.timestamp}_${item.message.senderName}") {
+                        item(key = "${item.message.id}_${item.message.timestamp}") {
                             MessageBubble(
                                 message = item.message,
                                 memberColors = memberColors,

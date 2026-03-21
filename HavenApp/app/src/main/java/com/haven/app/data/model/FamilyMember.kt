@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class FamilyMember(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val serverId: String = "", // Server UUID for API calls
     val name: String,
     val initials: String,
     val color: Long, // ARGB color stored as Long

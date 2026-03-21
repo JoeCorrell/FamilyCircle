@@ -48,7 +48,7 @@ class MapViewModel @Inject constructor(
         .flatMapLatest { member ->
             if (member == null) flowOf(emptyList())
             else flow {
-                val entries = apiManager.getLocationHistory(member.id.toString())
+                val entries = apiManager.getLocationHistory(member.serverId)
                 emit(entries.map {
                     HistoryEntry(it.address, it.speed.toFloat(), it.status, it.timestamp, it.latitude, it.longitude)
                 })
