@@ -69,19 +69,29 @@ class LocationService : Service() {
     private var crashSensorActive = false
     private var crashDetectedTime = 0L
     private var crashCountdownJob: Job? = null
-    private val CRASH_THRESHOLD_G = 4.0f  // 4G force = typical crash impact
+    private val CRASH_THRESHOLD_G = 6.0f  // 6G = real impact; bumps/jolts rarely exceed 4G
     private val CRASH_COUNTDOWN_MS = 60_000L  // 60 seconds before auto-SOS
+    // Only trigger crash if we were moving 25+ mph in the last 8 seconds
+    @Volatile private var lastHighSpeedMs = 0L
+    private val HIGH_SPEED_WINDOW_MS = 8_000L
+    // Require 3 consecutive above-threshold readings to avoid single-jolt false positives
+    private var highGCount = 0
 
     private val crashListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
             if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) return
-            val x = event.values[0]
-            val y = event.values[1]
-            val z = event.values[2]
-            // Total acceleration magnitude (gravity is ~9.8 m/s², so subtract it)
+            val x = event.values[0]; val y = event.values[1]; val z = event.values[2]
             val magnitude = sqrt(x * x + y * y + z * z) / SensorManager.GRAVITY_EARTH
-            if (magnitude > CRASH_THRESHOLD_G && wasDriving && crashDetectedTime == 0L) {
-                onCrashDetected()
+            val recentlyMovingFast = (System.currentTimeMillis() - lastHighSpeedMs) < HIGH_SPEED_WINDOW_MS
+            if (magnitude > CRASH_THRESHOLD_G && recentlyMovingFast && crashDetectedTime == 0L) {
+                highGCount++
+                if (highGCount >= 3) {
+                    highGCount = 0
+                    onCrashDetected()
+                }
+            } else {
+                // Reset consecutive count when G drops below threshold
+                if (magnitude < CRASH_THRESHOLD_G) highGCount = 0
             }
         }
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
@@ -198,6 +208,9 @@ class LocationService : Service() {
                                 lastSpeedAlertTime = now
                                 notificationHelper.notifySpeedAlert(memberName, speedMph.toInt())
                             }
+
+                            // Update last-high-speed timestamp for crash detection gating
+                            if (speedMph >= 25f) lastHighSpeedMs = now
 
                             // Detect harsh braking (speed drop > 15 mph between updates)
                             if (lastSpeed - speedMph > 15 && wasDriving) {
