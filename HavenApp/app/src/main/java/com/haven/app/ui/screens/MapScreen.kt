@@ -272,14 +272,8 @@ fun MapScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .animateContentSize(spring(dampingRatio = 0.8f, stiffness = 400f))
-                .background(
-                    t.card,
-                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                )
-                .border(
-                    1.dp, t.border,
-                    RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                )
+                .background(t.card)
+                .border(width = 1.dp, color = t.border)
         ) {
             // Handle bar
             Box(
