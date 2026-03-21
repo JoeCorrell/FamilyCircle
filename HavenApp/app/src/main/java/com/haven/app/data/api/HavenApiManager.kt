@@ -194,7 +194,7 @@ class HavenApiManager @Inject constructor(
     }.distinctUntilChanged()
 
     private val _members = pollingFlow(5000) { api.getMembers(it) }
-        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun observeMembers(): Flow<List<MemberData>> = _members
 
@@ -232,7 +232,7 @@ class HavenApiManager @Inject constructor(
     // ── Places (polling-based flow) ──
 
     private val _places = pollingFlow(10000) { api.getPlaces(it) }
-        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun observePlaces(): Flow<List<PlaceData>> = _places
 
@@ -249,7 +249,7 @@ class HavenApiManager @Inject constructor(
     // ── Notifications (polling-based flow) ──
 
     private val _notifications = pollingFlow(15000) { api.getNotifications(it) }
-        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun observeNotifications(): Flow<List<NotificationData>> = _notifications
 
@@ -261,7 +261,7 @@ class HavenApiManager @Inject constructor(
     // ── Errands ──
 
     private val _errands = pollingFlow(5000) { api.getErrands(it) }
-        .shareIn(scope, SharingStarted.WhileSubscribed(5000), replay = 1)
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
     fun observeErrands(): Flow<List<ErrandData>> = _errands
 
