@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.haven.app.data.model.FamilyMember
 import com.haven.app.ui.components.HavenCard
+import com.haven.app.ui.components.ProfileImage
 import com.haven.app.ui.theme.LocalHavenColors
 import com.haven.app.ui.theme.OutfitFamily
 import com.haven.app.ui.theme.SpaceMonoFamily
@@ -163,11 +165,20 @@ fun HomeScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     Box(modifier = Modifier.size(36.dp)) {
-                                        Box(
-                                            modifier = Modifier.size(36.dp).background(mc.copy(alpha = 0.08f), RoundedCornerShape(11.dp)).border(2.dp, mc, RoundedCornerShape(11.dp)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(member.initials, fontSize = 14.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
+                                        if (member.photoUrl.isNotEmpty()) {
+                                            ProfileImage(
+                                                photoUrl = member.photoUrl,
+                                                contentDescription = member.name,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(11.dp)).border(2.dp, mc, RoundedCornerShape(11.dp))
+                                            )
+                                        } else {
+                                            Box(
+                                                modifier = Modifier.size(36.dp).background(mc.copy(alpha = 0.08f), RoundedCornerShape(11.dp)).border(2.dp, mc, RoundedCornerShape(11.dp)),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(member.initials, fontSize = 14.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
+                                            }
                                         }
                                         if (member.isOnline) {
                                             Box(modifier = Modifier.align(Alignment.BottomEnd).size(9.dp).background(t.ok, CircleShape).border(1.5.dp, t.card, CircleShape))
