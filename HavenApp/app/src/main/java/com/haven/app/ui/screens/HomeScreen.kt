@@ -87,8 +87,8 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // ── Welcome Card (no members) ──
             if (members.isEmpty()) {
@@ -107,7 +107,7 @@ fun HomeScreen(
             if (members.isNotEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth()) {
                     Column {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("FAMILY", style = label, color = t.textFade)
                             Text("${members.count { it.isOnline }} ONLINE", style = label, color = t.ok)
                         }
@@ -127,35 +127,35 @@ fun HomeScreen(
                                                 drawLine(t.border, Offset(size.width, 0f), Offset(size.width, size.height), 1f)
                                             } else Modifier
                                         )
-                                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                                        .padding(vertical = 12.dp, horizontal = 4.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Box(modifier = Modifier.size(36.dp)) {
+                                    Box(modifier = Modifier.size(40.dp)) {
                                         if (member.photoUrl.isNotEmpty()) {
                                             ProfileImage(
                                                 photoUrl = member.photoUrl,
                                                 contentDescription = member.name,
                                                 contentScale = ContentScale.Crop,
-                                                modifier = Modifier.size(36.dp).clip(RoundedCornerShape(11.dp)).border(2.dp, mc, RoundedCornerShape(11.dp))
+                                                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(13.dp)).border(2.5.dp, mc, RoundedCornerShape(13.dp))
                                             )
                                         } else {
                                             Box(
-                                                modifier = Modifier.size(36.dp).background(mc.copy(alpha = 0.08f), RoundedCornerShape(11.dp)).border(2.dp, mc, RoundedCornerShape(11.dp)),
+                                                modifier = Modifier.size(40.dp).background(mc.copy(alpha = 0.08f), RoundedCornerShape(13.dp)).border(2.5.dp, mc, RoundedCornerShape(13.dp)),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Text(member.initials, fontSize = 14.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
+                                                Text(member.initials, fontSize = 16.sp, fontWeight = FontWeight.Black, color = mc, fontFamily = OutfitFamily)
                                             }
                                         }
                                         if (member.isOnline) {
-                                            Box(modifier = Modifier.align(Alignment.BottomEnd).size(9.dp).background(t.ok, CircleShape).border(1.5.dp, t.card, CircleShape))
+                                            Box(modifier = Modifier.align(Alignment.BottomEnd).size(10.dp).background(t.ok, CircleShape).border(2.dp, t.card, CircleShape))
                                         }
                                     }
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(member.name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1)
+                                    Spacer(Modifier.height(5.dp))
+                                    Text(member.name, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily, maxLines = 1)
                                     val seen = member.lastSeenText()
                                     Text(
                                         if (seen == "Now") "LIVE" else seen,
-                                        fontSize = 7.sp, fontWeight = FontWeight.Bold,
+                                        fontSize = 8.sp, fontWeight = FontWeight.Bold,
                                         color = if (seen == "Now") t.ok else t.textFade, fontFamily = SpaceMonoFamily
                                     )
                                 }
@@ -211,44 +211,44 @@ fun HomeScreen(
             }
 
             // ── Quick Actions Row ──
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // SOS
                 Box(
-                    modifier = Modifier.weight(1f).height(80.dp).clip(RoundedCornerShape(18.dp))
+                    modifier = Modifier.weight(1f).height(90.dp).clip(RoundedCornerShape(20.dp))
                         .background(Brush.linearGradient(listOf(Color(0xFFDC2626), Color(0xFF991B1B))))
-                        .clickable { onSosClick() }.padding(12.dp),
+                        .clickable { onSosClick() }.padding(14.dp),
                 ) {
                     Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxSize()) {
-                        Box(modifier = Modifier.size(20.dp).drawBehind { drawSosIcon(Color.White.copy(alpha = 0.8f)) })
+                        Box(modifier = Modifier.size(22.dp).drawBehind { drawSosIcon(Color.White.copy(alpha = 0.8f)) })
                         Column {
-                            Text("SOS", fontSize = 14.sp, fontWeight = FontWeight.Black, color = Color.White, fontFamily = OutfitFamily)
-                            Text("EMERGENCY", fontSize = 7.sp, color = Color.White.copy(alpha = 0.5f), fontFamily = SpaceMonoFamily)
+                            Text("SOS", fontSize = 15.sp, fontWeight = FontWeight.Black, color = Color.White, fontFamily = OutfitFamily)
+                            Text("EMERGENCY", fontSize = 8.sp, color = Color.White.copy(alpha = 0.5f), fontFamily = SpaceMonoFamily)
                         }
                     }
                 }
                 // Map
-                HavenCard(modifier = Modifier.weight(1f).height(80.dp), onClick = onMapClick) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Box(modifier = Modifier.size(20.dp).drawBehind { drawMapPinIcon(t.accent) })
+                HavenCard(modifier = Modifier.weight(1f).height(90.dp), onClick = onMapClick) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Box(modifier = Modifier.size(22.dp).drawBehind { drawMapPinIcon(t.accent) })
                         Spacer(Modifier.height(6.dp))
-                        Text("Map", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
-                        Text("VIEW FAMILY", fontSize = 7.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                        Text("Map", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                        Text("VIEW FAMILY", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                     }
                 }
                 // Driving
-                HavenCard(modifier = Modifier.weight(1f).height(80.dp), onClick = onSafetyClick) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Box(modifier = Modifier.size(20.dp).drawBehind { drawCarIcon(t.accent) })
+                HavenCard(modifier = Modifier.weight(1f).height(90.dp), onClick = onSafetyClick) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Box(modifier = Modifier.size(22.dp).drawBehind { drawCarIcon(t.accent) })
                         Spacer(Modifier.height(6.dp))
-                        Text("Trips", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
-                        Text("$drivesCount DRIVES", fontSize = 7.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
+                        Text("Trips", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.text, fontFamily = OutfitFamily)
+                        Text("$drivesCount DRIVES", fontSize = 8.sp, color = t.textFade, fontFamily = SpaceMonoFamily)
                     }
                 }
             }
 
             // ── Places ──
             HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onPlacesClick) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(14.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text("PLACES", style = label, color = t.textFade)
                         if (isAdmin) {
@@ -283,7 +283,7 @@ fun HomeScreen(
             // ── Recent Activity ──
             if (notifications.isNotEmpty()) {
                 HavenCard(modifier = Modifier.fillMaxWidth(), onClick = onNotificationsClick) {
-                    Column(modifier = Modifier.padding(12.dp)) {
+                    Column(modifier = Modifier.padding(14.dp)) {
                         Text("RECENT ACTIVITY", style = label, color = t.textFade)
                         Spacer(Modifier.height(6.dp))
                         notifications.take(3).forEach { notif ->

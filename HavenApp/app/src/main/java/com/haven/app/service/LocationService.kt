@@ -467,24 +467,27 @@ class LocationService : Service() {
                                     }
                                 }
 
-                                val previousAtPlace = memberPlaceState[placeId] ?: mutableSetOf()
+                                val previousAtPlace = memberPlaceState[placeId]
 
-                                // Arrivals (in current but not previous)
-                                for (name in currentAtPlace) {
-                                    if (name !in previousAtPlace) {
-                                        val member = allMembers.firstOrNull { it.name == name }
-                                        if (member != null && member.userId != apiManager.userId) {
-                                            notificationHelper.notifyArrival(name, place.name)
+                                // Skip notifications on first check (just populate state)
+                                if (previousAtPlace != null) {
+                                    // Arrivals (in current but not previous)
+                                    for (name in currentAtPlace) {
+                                        if (name !in previousAtPlace) {
+                                            val member = allMembers.firstOrNull { it.name == name }
+                                            if (member != null && member.userId != apiManager.userId) {
+                                                notificationHelper.notifyArrival(name, place.name)
+                                            }
                                         }
                                     }
-                                }
 
-                                // Departures (in previous but not current)
-                                for (name in previousAtPlace) {
-                                    if (name !in currentAtPlace) {
-                                        val member = allMembers.firstOrNull { it.name == name }
-                                        if (member != null && member.userId != apiManager.userId) {
-                                            notificationHelper.notifyDeparture(name, place.name)
+                                    // Departures (in previous but not current)
+                                    for (name in previousAtPlace) {
+                                        if (name !in currentAtPlace) {
+                                            val member = allMembers.firstOrNull { it.name == name }
+                                            if (member != null && member.userId != apiManager.userId) {
+                                                notificationHelper.notifyDeparture(name, place.name)
+                                            }
                                         }
                                     }
                                 }
