@@ -26,6 +26,7 @@ import com.haven.app.data.api.LocationUpdate
 import com.haven.app.data.model.MemberStatus
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
@@ -36,6 +37,7 @@ class LocationService : Service() {
 
     @Inject lateinit var apiManager: HavenApiManager
     @Inject lateinit var notificationHelper: NotificationHelper
+    @Inject lateinit var userPreferences: com.haven.app.data.preferences.UserPreferences
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -58,7 +60,7 @@ class LocationService : Service() {
     private var driveHarshBrakes = 0
     private var lastSpeed = 0f
     private var lastNotifTimestamp = 0L
-    private var lastMessageCount = -1
+    private var lastMessageTimestamp = 0L
     private var lastSosState = false
     private var pollingStarted = false
     private var cachedMemberName: String? = null
@@ -238,7 +240,7 @@ class LocationService : Service() {
                                     driveTopSpeed = speedMph
                                     driveHarshBrakes = 0
                                     notificationHelper.notifyDriveStarted(memberName)
-                                    startCrashDetection()
+                                    if (userPreferences.crashDetection.first()) startCrashDetection()
                                 }
                             } else {
                                 drivingConfirmCount = 0
@@ -408,12 +410,13 @@ class LocationService : Service() {
                         } catch (_: Exception) { emptyList() }
 
                         if (!initialized) {
-                            lastMessageCount = messages.size
+                            // Snapshot the latest message timestamp so we don't spam on first load
+                            lastMessageTimestamp = messages.maxOfOrNull { it.timestamp.toLong() } ?: 0L
                             lastNotifTimestamp = System.currentTimeMillis()
                             initialized = true
-                        } else if (messages.size > lastMessageCount) {
-                            // New messages since last check
-                            val newMsgs = messages.drop(lastMessageCount)
+                        } else {
+                            // Only notify for messages newer than our last seen timestamp
+                            val newMsgs = messages.filter { it.timestamp.toLong() > lastMessageTimestamp }
                             for (msg in newMsgs) {
                                 if (msg.senderUid != apiManager.userId) {
                                     val senderName = msg.senderName
@@ -432,7 +435,9 @@ class LocationService : Service() {
                                     }
                                 }
                             }
-                            lastMessageCount = messages.size
+                            if (newMsgs.isNotEmpty()) {
+                                lastMessageTimestamp = newMsgs.maxOf { it.timestamp.toLong() }
+                            }
                         }
 
                         // Check for new errands
@@ -612,9 +617,10 @@ class LocationService : Service() {
         super.onDestroy()
         stopCrashDetection()
         stopLocationUpdates()
-        // Mark offline before cancelling scope
-        serviceScope.launch {
+        // Mark offline using a separate scope that won't be cancelled prematurely
+        runBlocking(Dispatchers.IO) {
             try { apiManager.updateMyMember(mapOf("isOnline" to false)) } catch (_: Exception) {}
-        }.invokeOnCompletion { serviceScope.cancel() }
+        }
+        serviceScope.cancel()
     }
 }

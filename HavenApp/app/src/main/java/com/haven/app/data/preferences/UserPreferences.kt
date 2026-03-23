@@ -33,8 +33,6 @@ class UserPreferences @Inject constructor(
         val HIDE_ADDRESS = booleanPreferencesKey("hide_address")
         val DATA_SHARING = booleanPreferencesKey("data_sharing")
         val CRASH_DETECTION = booleanPreferencesKey("crash_detection")
-        val USER_NAME = stringPreferencesKey("user_name")
-        val FAMILY_NAME = stringPreferencesKey("family_name")
     }
 
     val theme: Flow<String> = context.dataStore.data.map { it[THEME_KEY] ?: "sand" }
@@ -52,8 +50,6 @@ class UserPreferences @Inject constructor(
     val hideAddress: Flow<Boolean> = context.dataStore.data.map { it[HIDE_ADDRESS] ?: false }
     val dataSharing: Flow<Boolean> = context.dataStore.data.map { it[DATA_SHARING] ?: true }
     val crashDetection: Flow<Boolean> = context.dataStore.data.map { it[CRASH_DETECTION] ?: true }
-    val userName: Flow<String> = context.dataStore.data.map { it[USER_NAME] ?: "" }
-    val familyName: Flow<String> = context.dataStore.data.map { it[FAMILY_NAME] ?: "My Family" }
 
     suspend fun setTheme(theme: String) {
         context.dataStore.edit { it[THEME_KEY] = theme }

@@ -47,7 +47,7 @@ fun SafetyScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Crash Detection Banner
-            var crashOn by remember { mutableStateOf(true) }
+            val crashOn by viewModel.crashDetectionEnabled.collectAsStateWithLifecycle()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -70,7 +70,7 @@ fun SafetyScreen(
                         fontFamily = SpaceMonoFamily
                     )
                 }
-                HavenToggle(checked = crashOn, onCheckedChange = { crashOn = it })
+                HavenToggle(checked = crashOn, onCheckedChange = { viewModel.setCrashDetection(it) })
             }
 
             // Trips header

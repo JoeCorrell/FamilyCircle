@@ -4,18 +4,13 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.haven.app.data.local.dao.EmergencyContactDao
-import com.haven.app.data.model.*
+import com.haven.app.data.model.EmergencyContact
 
 @Database(
     entities = [
-        FamilyMember::class,
-        Place::class,
-        Drive::class,
-        Message::class,
-        AppNotification::class,
         EmergencyContact::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

@@ -77,11 +77,12 @@ class NotificationHelper @Inject constructor(
     }
 
     suspend fun notifyArrival(memberName: String, placeName: String) {
-        sendNotification("$memberName arrived", "Arrived at $placeName", HavenApp.GEOFENCE_CHANNEL_ID, COLOR_ARRIVAL)
+        // Local notification only — each device detects independently, so don't flood server
+        showLocalNotification("$memberName arrived", "Arrived at $placeName", HavenApp.GEOFENCE_CHANNEL_ID)
     }
 
     suspend fun notifyDeparture(memberName: String, placeName: String) {
-        sendNotification("$memberName left", "Left $placeName", HavenApp.GEOFENCE_CHANNEL_ID, COLOR_DEPARTURE)
+        showLocalNotification("$memberName left", "Left $placeName", HavenApp.GEOFENCE_CHANNEL_ID)
     }
 
     suspend fun notifyDriveStarted(memberName: String) {
